@@ -1,29 +1,16 @@
 const AWS = require('aws-sdk');
 const csv = require('csv-parser');
 const { Readable } = require('stream');
-const https = require('https');
-
-// Configurar agente HTTPS para ignorar certificados autofirmados
-const httpsAgent = new https.Agent({
-  rejectUnauthorized: false
-});
 
 // Configurar AWS SDK usando variables de entorno
 AWS.config.update({
   region: process.env.AWS_REGION || 'eu-west-1',
   accessKeyId: process.env.AWS_ACCESS_KEY_ID,
   secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
-  sessionToken: process.env.AWS_SESSION_TOKEN, // Opcional, solo si usas tokens temporales
-  httpOptions: {
-    agent: httpsAgent
-  }
+  sessionToken: process.env.AWS_SESSION_TOKEN // Opcional, solo si usas tokens temporales
 });
 
-const s3 = new AWS.S3({
-  httpOptions: {
-    agent: httpsAgent
-  }
-});
+const s3 = new AWS.S3;
 
 /**
  * Listar archivos de un bucket S3 con un prefix específico
@@ -92,14 +79,14 @@ async function parseCSV(csvContent) {
     readable
       .pipe(csv({
         separator: ',', // O ';' dependiendo del formato
-        skipEmptyLines: true,
-        headers: ['idSpool', 'tipoDocumento'] // Headers esperados basados en los requisitos
+        skipEmptyLines: true
+        // No definir headers manualmente - usar la primera línea del CSV como cabeceras
       }))
       .on('data', (data) => {
         results.push(data);
       })
       .on('end', () => {
-        console.log(`CSV parseado: ${results.length} registros encontrados`);
+        console.log(`CSV parseado: ${results.length} registros encontrados (sin contar cabeceras)`);
         resolve(results);
       })
       .on('error', (error) => {
@@ -176,11 +163,41 @@ async function deleteFile(bucket, key) {
   }
 }
 
+/**
+ * Descargar archivo desde S3 como stream
+ */
+async function downloadFile(bucket, key) {
+  try {
+    const params = {
+      Bucket: bucket,
+      Key: key
+    };
+
+    // Verificar que el archivo existe
+    await s3.headObject(params).promise();
+    
+    // Crear stream para descarga
+    const stream = s3.getObject(params).createReadStream();
+    
+    console.log(`Stream creado para descarga: ${bucket}/${key}`);
+    return stream;
+  } catch (error) {
+    console.error(`Error descargando archivo ${key}:`, error);
+    if (error.code === 'NotFound' || error.code === 'NoSuchKey') {
+      const notFoundError = new Error(`Archivo no encontrado: ${key}`);
+      notFoundError.code = 'NoSuchKey';
+      throw notFoundError;
+    }
+    throw new Error(`Error al descargar archivo: ${error.message}`);
+  }
+}
+
 module.exports = {
   listFiles,
   getFileContent,
   parseCSV,
   updateCSVContent,
   uploadFile,
-  deleteFile
+  deleteFile,
+  downloadFile
 };

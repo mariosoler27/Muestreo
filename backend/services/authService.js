@@ -1,10 +1,5 @@
 const axios = require('axios');
-const https = require('https');
 
-// Configurar agente HTTPS para ignorar certificados autofirmados en desarrollo
-const httpsAgent = new https.Agent({
-  rejectUnauthorized: false
-});
 
 // Configuración de Cognito
 const COGNITO_CONFIG = {
@@ -30,7 +25,6 @@ async function authenticateUser(username, password) {
         'Content-Type': 'application/json',
         'X-API-Key': 'jVNJLEaBE74p9YzmsShre9FDyVaS4EIl7XYBuhM1'
       },
-      httpsAgent: httpsAgent,
       timeout: 10000 // Timeout de 10 segundos
     });
 

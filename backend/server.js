@@ -3,6 +3,12 @@ const express = require('express');
 const cors = require('cors');
 const { getFileTypeFromName } = require('./config/fileTypes');
 const { authMiddleware } = require('./middleware/simpleAuth');
+const { 
+  fullAuthMiddleware, 
+  authorizationMiddleware, 
+  fileAuthorizationMiddleware,
+  authorizationService 
+} = require('./middleware/authorizationMiddleware');
 const { authenticateUser } = require('./services/authService');
 
 const app = express();
@@ -65,17 +71,21 @@ app.post('/api/login', async (req, res) => {
   }
 });
 
-// Obtener lista de archivos del bucket S3 (requiere autenticación)
-app.get('/api/getFiles', authMiddleware, async (req, res) => {
+// Obtener lista de archivos del bucket S3 (requiere autenticación + autorización)
+app.get('/api/getFiles', fullAuthMiddleware, async (req, res) => {
   try {
-    const bucket = process.env.S3_BUCKET_NAME || 'rgpdintcomer-des-deltasmile-servinform';
+    // Usar el bucket autorizado del usuario
+    const bucket = req.userAuth.bucket;
     const prefix = process.env.S3_SOURCE_PREFIX || 'Recepcion/Muestreo/';
     
-    console.log(`Obteniendo archivos del bucket: ${bucket}, prefix: ${prefix}`);
+    console.log(`Obteniendo archivos del bucket: ${bucket}, prefix: ${prefix} para usuario: ${req.user.username}`);
     
     const files = await s3Services.listFiles(bucket, prefix);
     
-    // Agregar información de tipología a cada archivo
+    // Filtrar archivos según el grupo de documentos del usuario
+    const userGroup = req.userAuth.grupo_documentos;
+    console.log(`Filtrando archivos para grupo: ${userGroup}`);
+    
     const filesWithTypes = files.map(file => {
       const fileType = getFileTypeFromName(file.name);
       return {
@@ -83,8 +93,23 @@ app.get('/api/getFiles', authMiddleware, async (req, res) => {
         tipologia: fileType.tipologia,
         descripcion: fileType.descripcion
       };
+    }).filter(file => {
+      // Filtrar basándose en coincidencias de texto en la descripción
+      const descripcion = file.descripcion.toLowerCase();
+      
+      if (userGroup === 'Facturas') {
+        // Si el usuario tiene acceso a Facturas, mostrar archivos que contengan "factur" en la descripción
+        return descripcion.includes('factur');
+      } else if (userGroup === 'Cartas') {
+        // Si el usuario tiene acceso a Cartas, mostrar archivos que contengan "cartas" en la descripción
+        return descripcion.includes('cartas');
+      }
+      
+      // Por defecto, no mostrar nada si el grupo no es reconocido
+      return false;
     });
     
+    console.log(`Archivos filtrados: ${filesWithTypes.length} de ${files.length} total`);
     res.json(filesWithTypes);
   } catch (error) {
     console.error('Error obteniendo archivos:', error);
@@ -95,27 +120,29 @@ app.get('/api/getFiles', authMiddleware, async (req, res) => {
   }
 });
 
-// Obtener información específica de un archivo CSV (requiere autenticación)
-app.get('/api/getFileInfo/:fileName', authMiddleware, async (req, res) => {
+// Obtener información específica de un archivo CSV (requiere autenticación + autorización)
+app.get('/api/getFileInfo/:fileName', fullAuthMiddleware, fileAuthorizationMiddleware, async (req, res) => {
   try {
     const fileName = req.params.fileName;
-    const bucket = process.env.S3_BUCKET_NAME || 'rgpdintcomer-des-deltasmile-servinform';
+    // Usar el bucket autorizado del usuario
+    const bucket = req.userAuth.bucket;
     const sourcePrefix = process.env.S3_SOURCE_PREFIX || 'Recepcion/Muestreo/';
     const key = `${sourcePrefix}${fileName}`;
     
-    console.log(`Obteniendo información del archivo: ${fileName}`);
+    console.log(`Obteniendo información del archivo: ${fileName} para usuario: ${req.user.username}`);
     
     const fileContent = await s3Services.getFileContent(bucket, key);
     const parsedData = await s3Services.parseCSV(fileContent);
     
-    // Agregar información de tipología
-    const fileType = getFileTypeFromName(fileName);
+    // La información de tipología ya está disponible en req.fileTypeInfo gracias al fileAuthorizationMiddleware
+    const fileType = req.fileTypeInfo;
     
     res.json({
       fileName,
       tipologia: fileType.tipologia,
       descripcion: fileType.descripcion,
-      data: parsedData
+      data: parsedData,
+      userGroup: req.userAuth.grupo_documentos // Información adicional del usuario
     });
   } catch (error) {
     console.error('Error obteniendo información del archivo:', error);
@@ -126,8 +153,8 @@ app.get('/api/getFileInfo/:fileName', authMiddleware, async (req, res) => {
   }
 });
 
-// Procesar un archivo (requiere autenticación)
-app.post('/api/processFile', authMiddleware, async (req, res) => {
+// Procesar un archivo (requiere autenticación + autorización)
+app.post('/api/processFile', fullAuthMiddleware, async (req, res) => {
   try {
     const { 
       fileName, 
@@ -135,19 +162,34 @@ app.post('/api/processFile', authMiddleware, async (req, res) => {
       tipoDocumento, 
       resultado 
     } = req.body;
+
+    // Verificar que el usuario puede acceder a este archivo
+    const fileType = getFileTypeFromName(fileName);
+    const accessCheck = await authorizationService.canAccessFile(
+      req.user.username,
+      fileName,
+      fileType
+    );
+
+    if (!accessCheck.canAccess) {
+      return res.status(403).json({
+        error: 'Acceso denegado',
+        message: accessCheck.reason
+      });
+    }
     
-    // Usar información del usuario autenticado
+    // Usar información del usuario autenticado y su bucket autorizado
     const idUsuario = req.user.username;
     const nombreUsuario = req.user.name || req.user.username;
+    const bucket = req.userAuth.bucket; // Usar bucket autorizado del usuario
     
-    const bucket = process.env.S3_BUCKET_NAME || 'rgpdintcomer-des-deltasmile-servinform';
     const sourcePrefix = process.env.S3_SOURCE_PREFIX || 'Recepcion/Muestreo/';
     const destinationPrefix = process.env.S3_DESTINATION_PREFIX || 'Recepcion/Muestreo/Resultado/';
     const sourceKey = `${sourcePrefix}${fileName}`;
     const destinationKey = `${destinationPrefix}${fileName}`;
     
     console.log(`Procesando archivo: ${fileName}`);
-    console.log(`Resultado: ${resultado}, Usuario: ${nombreUsuario} (${idUsuario})`);
+    console.log(`Resultado: ${resultado}, Usuario: ${nombreUsuario} (${idUsuario}), Bucket: ${bucket}`);
     
     // Obtener el archivo actual
     const currentContent = await s3Services.getFileContent(bucket, sourceKey);
@@ -177,7 +219,8 @@ app.post('/api/processFile', authMiddleware, async (req, res) => {
       message: `Archivo ${fileName} procesado y movido a Resultado`,
       processedBy: nombreUsuario,
       processedAt: timestamp,
-      resultado
+      resultado,
+      userGroup: req.userAuth.grupo_documentos
     });
   } catch (error) {
     console.error('Error procesando archivo:', error);
@@ -185,6 +228,119 @@ app.post('/api/processFile', authMiddleware, async (req, res) => {
       error: 'Error al procesar el archivo', 
       details: error.message 
     });
+  }
+});
+
+// Rutas de administración de autorizaciones (requiere autenticación)
+app.get('/api/admin/authorizations', authMiddleware, async (req, res) => {
+  try {
+    const result = await authorizationService.getAllAuthorizations();
+    res.json(result);
+  } catch (error) {
+    console.error('Error obteniendo autorizaciones:', error);
+    res.status(500).json({
+      error: 'Error obteniendo autorizaciones',
+      details: error.message
+    });
+  }
+});
+
+// Crear nueva autorización (requiere autenticación)
+app.post('/api/admin/authorizations', authMiddleware, async (req, res) => {
+  try {
+    const { username, bucket, grupo_documentos } = req.body;
+    
+    if (!username || !bucket || !grupo_documentos) {
+      return res.status(400).json({
+        error: 'Datos incompletos',
+        message: 'Se requieren username, bucket y grupo_documentos'
+      });
+    }
+    
+    const result = await authorizationService.createUserAuthorization(
+      username, 
+      bucket, 
+      grupo_documentos
+    );
+    
+    res.json(result);
+  } catch (error) {
+    console.error('Error creando autorización:', error);
+    res.status(500).json({
+      error: 'Error creando autorización',
+      details: error.message
+    });
+  }
+});
+
+// Obtener autorización de un usuario específico
+app.get('/api/user/authorization', fullAuthMiddleware, async (req, res) => {
+  try {
+    res.json({
+      success: true,
+      authorization: req.userAuth
+    });
+  } catch (error) {
+    console.error('Error obteniendo autorización del usuario:', error);
+    res.status(500).json({
+      error: 'Error obteniendo autorización',
+      details: error.message
+    });
+  }
+});
+
+// Descargar documento desde S3 (requiere autenticación + autorización)
+app.get('/api/downloadDocument/:documentId', fullAuthMiddleware, async (req, res) => {
+  try {
+    const documentId = req.params.documentId;
+    
+    if (!documentId) {
+      return res.status(400).json({
+        error: 'ID de documento requerido'
+      });
+    }
+
+    // Usar el bucket autorizado del usuario
+    const bucket = req.userAuth.bucket;
+    const documentPath = `Recepcion/${documentId}`;
+    
+    console.log(`Descargando documento: ${documentId} para usuario: ${req.user.username}`);
+    console.log(`Bucket: ${bucket}, Ruta: ${documentPath}`);
+    
+    // Verificar que el archivo existe y obtenerlo
+    const fileStream = await s3Services.downloadFile(bucket, documentPath);
+    
+    // Configurar headers para descarga
+    res.setHeader('Content-Disposition', `attachment; filename="${documentId}"`);
+    res.setHeader('Content-Type', 'application/octet-stream');
+    
+    // Pipe el stream del archivo S3 a la respuesta
+    fileStream.pipe(res);
+    
+    fileStream.on('error', (error) => {
+      console.error('Error en stream de descarga:', error);
+      if (!res.headersSent) {
+        res.status(500).json({ 
+          error: 'Error descargando archivo', 
+          details: error.message 
+        });
+      }
+    });
+    
+  } catch (error) {
+    console.error('Error descargando documento:', error);
+    
+    if (error.code === 'NoSuchKey') {
+      res.status(404).json({
+        error: 'Documento no encontrado',
+        message: `El documento ${req.params.documentId} no existe en S3`
+      });
+    } else {
+      res.status(500).json({ 
+        error: 'Error descargando documento', 
+        details: error.message 
+      });
+    }
   }
 });
 
