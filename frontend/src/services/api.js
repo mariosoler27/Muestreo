@@ -55,9 +55,13 @@ export const getFiles = async () => {
 };
 
 // Obtener información detallada de un archivo específico (requiere autenticación)
-export const getFileInfo = async (fileName) => {
+export const getFileInfo = async (fileName, folderPath) => {
   try {
-    const response = await authenticatedFetch(`${API_BASE_URL}/getFileInfo/${encodeURIComponent(fileName)}`);
+    if (!folderPath) {
+      throw new Error('Parámetro folderPath es requerido');
+    }
+    
+    const response = await authenticatedFetch(`${API_BASE_URL}/getFileInfo/${encodeURIComponent(fileName)}?folder=${encodeURIComponent(folderPath)}`);
     return await handleResponse(response);
   } catch (error) {
     console.error('Error en getFileInfo:', error);
@@ -86,6 +90,28 @@ export const checkServerHealth = async () => {
     return await handleResponse(response);
   } catch (error) {
     console.error('Error en checkServerHealth:', error);
+    throw error;
+  }
+};
+
+// Obtener carpetas disponibles para el usuario (requiere autenticación)
+export const getFolders = async () => {
+  try {
+    const response = await authenticatedFetch(`${API_BASE_URL}/getFolders`);
+    return await handleResponse(response);
+  } catch (error) {
+    console.error('Error en getFolders:', error);
+    throw error;
+  }
+};
+
+// Obtener archivos de una carpeta específica (requiere autenticación)
+export const getFilesByFolder = async (folderPath) => {
+  try {
+    const response = await authenticatedFetch(`${API_BASE_URL}/getFiles?folder=${encodeURIComponent(folderPath)}`);
+    return await handleResponse(response);
+  } catch (error) {
+    console.error('Error en getFilesByFolder:', error);
     throw error;
   }
 };

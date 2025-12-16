@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import { downloadDocument } from '../services/api';
+import { getDocumentTypeDisplay, isValidDocumentType } from '../config/documentTypes';
 
 const FileDetails = ({ fileDetails, selectedFile, loading, onProcessFile }) => {
-  const [downloadingDocument, setDownloadingDocument] = useState(false);
+  const [downloadingDocument, setDownloadingDocument] = useState(null); // Cambiar a null para manejar ID específico
   const [formData, setFormData] = useState({
     idSpool: '',
     tipoDocumento: '',
@@ -53,7 +54,7 @@ const FileDetails = ({ fileDetails, selectedFile, loading, onProcessFile }) => {
       setFormData(prev => ({
         ...prev,
         idSpool: firstRecord.idSpool || '',
-        tipoDocumento: firstRecord.tipoDocumento || '',
+        tipoDocumento: firstRecord.tipologia || '', // Usar tipologia del CSV
         idDocumento: firstRecord.idDocumento || ''
       }));
     }
@@ -96,27 +97,34 @@ const FileDetails = ({ fileDetails, selectedFile, loading, onProcessFile }) => {
       return;
     }
     
-    onProcessFile(formData);
+    // Agregar información de la carpeta actual
+    const processData = {
+      ...formData,
+      fileName: fileDetails.fileName,
+      folderPath: fileDetails.folderPath
+    };
+    
+    onProcessFile(processData);
   };
 
-  // Función para descargar documento desde S3
-  const handleDownloadDocument = async () => {
-    if (!formData.idDocumento) {
+  // Función para descargar documento desde la tabla CSV
+  const handleDownloadDocumentFromRow = async (idDocumento) => {
+    if (!idDocumento) {
       alert('No hay ID de documento para descargar');
       return;
     }
 
-    setDownloadingDocument(true);
+    setDownloadingDocument(idDocumento);
     try {
       // Usar la función centralizada de la API
-      const blob = await downloadDocument(formData.idDocumento);
+      const blob = await downloadDocument(idDocumento);
       
       // Crear URL y descargar archivo
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.style.display = 'none';
       a.href = url;
-      a.download = formData.idDocumento;
+      a.download = idDocumento;
       document.body.appendChild(a);
       a.click();
       window.URL.revokeObjectURL(url);
@@ -126,7 +134,7 @@ const FileDetails = ({ fileDetails, selectedFile, loading, onProcessFile }) => {
       console.error('Error descargando documento:', error);
       alert(`Error descargando documento: ${error.message}`);
     } finally {
-      setDownloadingDocument(false);
+      setDownloadingDocument(null);
     }
   };
 
@@ -186,14 +194,32 @@ const FileDetails = ({ fileDetails, selectedFile, loading, onProcessFile }) => {
                   <th>ID Spool</th>
                   <th>Tipo Documento</th>
                   <th>ID Documento</th>
+                  <th>Acción</th>
                 </tr>
               </thead>
               <tbody>
                 {fileDetails.data.map((row, index) => (
                   <tr key={index}>
                     <td>{row.idSpool}</td>
-                    <td>{row.tipoDocumento}</td>
+                    <td>
+                      <span className="tipologia-badge" title={getDocumentTypeDisplay(row.tipologia)}>
+                        {getDocumentTypeDisplay(row.tipologia)}
+                      </span>
+                    </td>
                     <td>{row.idDocumento}</td>
+                    <td>
+                      {row.idDocumento && (
+                        <button
+                          type="button"
+                          className="download-btn-small"
+                          onClick={() => handleDownloadDocumentFromRow(row.idDocumento)}
+                          disabled={downloadingDocument === row.idDocumento}
+                          title={`Descargar ${row.idDocumento}`}
+                        >
+                          {downloadingDocument === row.idDocumento ? '⏳' : '📥'}
+                        </button>
+                      )}
+                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -228,31 +254,6 @@ const FileDetails = ({ fileDetails, selectedFile, loading, onProcessFile }) => {
           </div>
         </div>
 
-        <div className="form-row">
-          <div className="form-field">
-            <label htmlFor="idDocumento">ID Documento:</label>
-            <div className="input-with-button">
-              <input
-                type="text"
-                id="idDocumento"
-                value={formData.idDocumento}
-                readOnly
-                className="readonly-field"
-                title="ID del documento asociado"
-                placeholder="No disponible"
-              />
-              <button
-                type="button"
-                className="download-btn"
-                onClick={handleDownloadDocument}
-                disabled={downloadingDocument || !formData.idDocumento}
-                title="Descargar documento desde S3"
-              >
-                {downloadingDocument ? '⏳' : '📥'}
-              </button>
-            </div>
-          </div>
-        </div>
 
         <div className="form-row">
           <div className="form-field">

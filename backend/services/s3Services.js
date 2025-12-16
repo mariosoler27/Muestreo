@@ -97,27 +97,56 @@ async function parseCSV(csvContent) {
 }
 
 /**
- * Actualizar contenido CSV con información adicional
+ * Actualizar contenido CSV con información adicional para todas las filas
  */
 async function updateCSVContent(originalContent, updateInfo) {
   try {
-    const { idSpool, tipoDocumento, resultado, idUsuario, nombreUsuario, timestamp } = updateInfo;
+    const { resultado, idUsuario, nombreUsuario, timestamp } = updateInfo;
     
     // Parsear el CSV original
     const originalData = await parseCSV(originalContent);
     
-    // Crear el contenido actualizado
-    // Agregar headers adicionales
-    const headers = 'idSpool,tipoDocumento,resultado,idUsuario,nombreUsuario,timestamp\n';
+    if (!originalData || originalData.length === 0) {
+      throw new Error('No hay datos en el CSV para procesar');
+    }
+    
+    // Obtener las cabeceras originales del primer objeto
+    const originalHeaders = Object.keys(originalData[0]);
+    
+    // Agregar nuevas cabeceras si no existen
+    const newHeaders = [...originalHeaders];
+    if (!newHeaders.includes('resultado')) newHeaders.push('resultado');
+    if (!newHeaders.includes('matriculaValidador')) newHeaders.push('matriculaValidador');
+    if (!newHeaders.includes('nombreValidador')) newHeaders.push('nombreValidador');
+    if (!newHeaders.includes('fechaValidacion')) newHeaders.push('fechaValidacion');
+    
+    // Crear la línea de cabeceras
+    const headers = newHeaders.join(',') + '\n';
     
     // Crear las filas con la información actualizada
     const updatedRows = originalData.map(row => {
-      return `${row.idSpool || idSpool},${row.tipoDocumento || tipoDocumento},${resultado},${idUsuario},${nombreUsuario},${timestamp}`;
+      const updatedRow = { ...row };
+      
+      // Actualizar los campos de procesamiento para cada fila
+      updatedRow.resultado = resultado;
+      updatedRow.matriculaValidador = idUsuario;
+      updatedRow.nombreValidador = nombreUsuario;
+      updatedRow.fechaValidacion = timestamp;
+      
+      // Crear la fila en formato CSV
+      return newHeaders.map(header => {
+        const value = updatedRow[header] || '';
+        // Escapar comas y comillas si es necesario
+        if (value.toString().includes(',') || value.toString().includes('"')) {
+          return `"${value.toString().replace(/"/g, '""')}"`;
+        }
+        return value;
+      }).join(',');
     });
     
     const updatedContent = headers + updatedRows.join('\n');
     
-    console.log('Contenido CSV actualizado con nueva información');
+    console.log(`Contenido CSV actualizado con ${updatedRows.length} filas procesadas`);
     return updatedContent;
   } catch (error) {
     console.error('Error actualizando contenido CSV:', error);
@@ -126,7 +155,52 @@ async function updateCSVContent(originalContent, updateInfo) {
 }
 
 /**
- * Subir archivo a S3
+ * Mover un archivo dentro del mismo bucket de S3 (copiar + eliminar original)
+ */
+async function moveFile(bucket, sourceKey, destinationKey) {
+  try {
+    // 1. Copiar el archivo al destino
+    const copyParams = {
+      Bucket: bucket,
+      CopySource: `${bucket}/${sourceKey}`,
+      Key: destinationKey
+    };
+
+    await s3.copyObject(copyParams).promise();
+    console.log(`Archivo copiado de ${sourceKey} a ${destinationKey}`);
+
+    // 2. Eliminar el archivo original
+    await deleteFile(bucket, sourceKey);
+    console.log(`Archivo movido exitosamente de ${sourceKey} a ${destinationKey}`);
+
+    return { success: true, sourceKey, destinationKey };
+  } catch (error) {
+    console.error(`Error moviendo archivo de ${sourceKey} a ${destinationKey}:`, error);
+    throw error;
+  }
+}
+
+/**
+ * Verificar si un archivo existe en S3
+ */
+async function fileExists(bucket, key) {
+  try {
+    const params = {
+      Bucket: bucket,
+      Key: key
+    };
+    await s3.headObject(params).promise();
+    return true;
+  } catch (error) {
+    if (error.code === 'NotFound' || error.code === 'NoSuchKey') {
+      return false;
+    }
+    throw error;
+  }
+}
+
+/**
+ * Subir un archivo a S3
  */
 async function uploadFile(bucket, key, content) {
   try {
@@ -134,13 +208,14 @@ async function uploadFile(bucket, key, content) {
       Bucket: bucket,
       Key: key,
       Body: content,
-      ContentType: 'text/csv'
+      ContentType: 'text/csv' // Asumimos CSV ya que es lo que estamos procesando
     };
 
-    await s3.upload(params).promise();
-    console.log(`Archivo subido exitosamente a ${bucket}/${key}`);
+    const result = await s3.upload(params).promise();
+    console.log(`Archivo subido exitosamente: ${bucket}/${key}`);
+    return result;
   } catch (error) {
-    console.error(`Error subiendo archivo a ${key}:`, error);
+    console.error(`Error subiendo archivo ${key}:`, error);
     throw new Error(`Error al subir archivo: ${error.message}`);
   }
 }
@@ -192,12 +267,48 @@ async function downloadFile(bucket, key) {
   }
 }
 
+/**
+ * Listar carpetas (directorios) de un bucket S3 con un prefix específico
+ */
+async function listFolders(bucket, prefix) {
+  try {
+    const params = {
+      Bucket: bucket,
+      Prefix: prefix.endsWith('/') ? prefix : prefix + '/',
+      Delimiter: '/'
+    };
+
+    const data = await s3.listObjectsV2(params).promise();
+    
+    // Extraer carpetas de los CommonPrefixes
+    const folders = (data.CommonPrefixes || []).map(item => {
+      const folderPath = item.Prefix;
+      const folderName = folderPath.slice(prefix.length + 1).replace('/', '');
+      
+      return {
+        name: folderName,
+        path: folderPath.slice(0, -1), // Quitar la barra final
+        fullPath: folderPath
+      };
+    }).filter(folder => folder.name); // Filtrar carpetas vacías
+
+    console.log(`Encontradas ${folders.length} carpetas en ${bucket}/${prefix}`);
+    return folders;
+  } catch (error) {
+    console.error('Error listando carpetas de S3:', error);
+    throw new Error(`Error al listar carpetas: ${error.message}`);
+  }
+}
+
 module.exports = {
   listFiles,
+  listFolders,
   getFileContent,
   parseCSV,
   updateCSVContent,
   uploadFile,
   deleteFile,
-  downloadFile
+  downloadFile,
+  moveFile,
+  fileExists
 };

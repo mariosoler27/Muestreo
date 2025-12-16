@@ -116,11 +116,6 @@ const Login = ({ onLoginSuccess }) => {
             {loading ? 'Iniciando sesión...' : 'Iniciar Sesión'}
           </button>
         </form>
-
-        <div className="login-info">
-          <p><strong>Usuario de prueba:</strong> 52369886J</p>
-          <p><strong>Contraseña:</strong> UserUser1234_</p>
-        </div>
       </div>
     </div>
   );

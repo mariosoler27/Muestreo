@@ -180,9 +180,9 @@ class AuthorizationService {
   }
 
   /**
-   * Verificar si un usuario puede acceder a un archivo específico basado en su tipología
+   * Verificar si un usuario puede acceder a un archivo específico basado en la carpeta donde se encuentra
    */
-  async canAccessFile(username, fileName, fileTypeInfo) {
+  async canAccessFile(username, fileName, fileTypeInfo, folderPath = null) {
     try {
       const userAuth = await this.userAuthModel.getUserAuthorization(username);
       
@@ -193,34 +193,41 @@ class AuthorizationService {
         };
       }
 
-      // Filtrar basándose en coincidencias de texto en la descripción
-      const descripcion = fileTypeInfo.descripcion.toLowerCase();
-      const userGroup = userAuth.grupo_documentos;
-      
-      let canAccess = false;
-      let requiredGroup = '';
-      
-      if (userGroup === 'Facturas') {
-        // Si el usuario tiene acceso a Facturas, verificar que el archivo contenga "factur" en la descripción
-        canAccess = descripcion.includes('factur');
-        requiredGroup = 'Facturas';
-      } else if (userGroup === 'Cartas') {
-        // Si el usuario tiene acceso a Cartas, verificar que el archivo contenga "cartas" en la descripción
-        canAccess = descripcion.includes('cartas');
-        requiredGroup = 'Cartas';
-      }
-      
-      if (!canAccess) {
-        return {
-          canAccess: false,
-          reason: `Acceso denegado. El archivo "${fileName}" con descripción "${fileTypeInfo.descripcion}" no coincide con el grupo autorizado "${userGroup}"`
-        };
+      // Si se proporciona una ruta de carpeta, verificar que esté dentro de la ruta autorizada
+      if (folderPath) {
+        const authorizedPath = userAuth.grupo_documentos;
+        
+        // Verificar que la carpeta del archivo esté dentro de la ruta autorizada
+        if (!folderPath.startsWith(authorizedPath)) {
+          return {
+            canAccess: false,
+            reason: `Acceso denegado. El archivo "${fileName}" en la carpeta "${folderPath}" no está dentro de la ruta autorizada "${authorizedPath}"`
+          };
+        }
+      } else {
+        // Si no hay carpeta especificada, verificar por tipo de archivo (compatibilidad con código anterior)
+        const descripcion = fileTypeInfo.descripcion.toLowerCase();
+        const userGroup = userAuth.grupo_documentos;
+        
+        let canAccess = false;
+        
+        if (userGroup.includes('Facturas')) {
+          canAccess = descripcion.includes('factur');
+        } else if (userGroup.includes('Cartas')) {
+          canAccess = descripcion.includes('cartas');
+        }
+        
+        if (!canAccess) {
+          return {
+            canAccess: false,
+            reason: `Acceso denegado. El archivo "${fileName}" con descripción "${fileTypeInfo.descripcion}" no coincide con el grupo autorizado "${userGroup}"`
+          };
+        }
       }
 
       return {
         canAccess: true,
-        userAuth: userAuth,
-        requiredGroup: requiredGroup
+        userAuth: userAuth
       };
     } catch (error) {
       console.error('Error verificando acceso a archivo:', error);

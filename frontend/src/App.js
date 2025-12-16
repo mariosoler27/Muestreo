@@ -2,14 +2,17 @@ import React, { useState, useEffect } from 'react';
 import './App.css';
 import FileExplorer from './components/FileExplorer';
 import FileDetails from './components/FileDetails';
+import FolderExplorer from './components/FolderExplorer';
 import Login from './components/Login';
-import { getFiles, getFileInfo, processFile } from './services/api';
+import { getFilesByFolder, getFileInfo, processFile } from './services/api';
 import { isAuthenticated, getUserInfo, logout, initAuth } from './services/auth';
 
 function App() {
   const [files, setFiles] = useState([]);
   const [selectedFile, setSelectedFile] = useState(null);
   const [fileDetails, setFileDetails] = useState(null);
+  const [selectedFolder, setSelectedFolder] = useState(null);
+  const [folders, setFolders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [authenticated, setAuthenticated] = useState(false);
@@ -60,11 +63,18 @@ function App() {
     }
   }, [authenticated]);
 
-  const loadFiles = async () => {
+  const loadFiles = async (folderPath = null) => {
+    if (!folderPath) {
+      // Si no hay carpeta seleccionada, limpiar archivos
+      setFiles([]);
+      setLoading(false);
+      return;
+    }
+    
     try {
       setLoading(true);
       setError(null);
-      const filesData = await getFiles();
+      const filesData = await getFilesByFolder(folderPath);
       setFiles(filesData);
     } catch (error) {
       console.error('Error cargando archivos:', error);
@@ -74,12 +84,26 @@ function App() {
     }
   };
 
+  const handleFolderSelect = async (folder) => {
+    setSelectedFolder(folder);
+    // Limpiar selecciones anteriores
+    setSelectedFile(null);
+    setFileDetails(null);
+    // Cargar archivos de la carpeta seleccionada
+    await loadFiles(folder.path);
+  };
+
   const handleFileSelect = async (file) => {
     try {
       setSelectedFile(file);
       setLoading(true);
       setError(null);
-      const details = await getFileInfo(file.name);
+      
+      if (!selectedFolder) {
+        throw new Error('No hay carpeta seleccionada');
+      }
+      
+      const details = await getFileInfo(file.name, selectedFolder.path);
       setFileDetails(details);
     } catch (error) {
       console.error('Error cargando detalles del archivo:', error);
@@ -105,7 +129,8 @@ function App() {
       // Recargar la lista de archivos y limpiar selección
       setSelectedFile(null);
       setFileDetails(null);
-      await loadFiles();
+      // Recargar archivos de la carpeta actual
+      await loadFiles(selectedFolder?.path);
       
     } catch (error) {
       console.error('Error procesando archivo:', error);
@@ -144,17 +169,26 @@ function App() {
 
       <main className="App-main">
         <div className="container">
-          <div className="left-panel">
+          <div className="folder-panel">
+            <FolderExplorer
+              onFolderSelect={handleFolderSelect}
+              selectedFolder={selectedFolder}
+              loading={loading}
+            />
+          </div>
+
+          <div className="files-panel">
             <FileExplorer
               files={files}
               onFileSelect={handleFileSelect}
               selectedFile={selectedFile}
+              selectedFolder={selectedFolder}
               loading={loading}
-              onRefresh={loadFiles}
+              onRefresh={() => loadFiles(selectedFolder?.path)}
             />
           </div>
           
-          <div className="right-panel">
+          <div className="details-panel">
             <FileDetails
               fileDetails={fileDetails}
               selectedFile={selectedFile}

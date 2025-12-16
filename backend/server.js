@@ -71,45 +71,67 @@ app.post('/api/login', async (req, res) => {
   }
 });
 
-// Obtener lista de archivos del bucket S3 (requiere autenticación + autorización)
+// Obtener carpetas disponibles para el usuario (requiere autenticación + autorización)
+app.get('/api/getFolders', fullAuthMiddleware, async (req, res) => {
+  try {
+    // Usar el bucket y ruta autorizada del usuario
+    const bucket = req.userAuth.bucket;
+    const basePath = req.userAuth.grupo_documentos; // Esto ahora será la ruta completa como "Recepcion/Muestreo/Cartas"
+    
+    console.log(`Obteniendo carpetas del bucket: ${bucket}, basePath: ${basePath} para usuario: ${req.user.username}`);
+    
+    const folders = await s3Services.listFolders(bucket, basePath);
+    
+    res.json({
+      basePath,
+      folders
+    });
+  } catch (error) {
+    console.error('Error obteniendo carpetas:', error);
+    res.status(500).json({ 
+      error: 'Error al obtener las carpetas', 
+      details: error.message 
+    });
+  }
+});
+
+// Obtener lista de archivos de una carpeta específica (requiere autenticación + autorización)
 app.get('/api/getFiles', fullAuthMiddleware, async (req, res) => {
   try {
+    const folderPath = req.query.folder;
+    
+    if (!folderPath) {
+      return res.status(400).json({
+        error: 'Parámetro folder requerido'
+      });
+    }
+
+    // Verificar que el usuario tiene acceso a esta carpeta
+    const basePath = req.userAuth.grupo_documentos;
+    if (!folderPath.startsWith(basePath)) {
+      return res.status(403).json({
+        error: 'Acceso denegado a esta carpeta'
+      });
+    }
+
     // Usar el bucket autorizado del usuario
     const bucket = req.userAuth.bucket;
-    const prefix = process.env.S3_SOURCE_PREFIX || 'Recepcion/Muestreo/';
     
-    console.log(`Obteniendo archivos del bucket: ${bucket}, prefix: ${prefix} para usuario: ${req.user.username}`);
+    console.log(`Obteniendo archivos del bucket: ${bucket}, folder: ${folderPath} para usuario: ${req.user.username}`);
     
-    const files = await s3Services.listFiles(bucket, prefix);
-    
-    // Filtrar archivos según el grupo de documentos del usuario
-    const userGroup = req.userAuth.grupo_documentos;
-    console.log(`Filtrando archivos para grupo: ${userGroup}`);
+    const files = await s3Services.listFiles(bucket, folderPath + '/');
     
     const filesWithTypes = files.map(file => {
       const fileType = getFileTypeFromName(file.name);
       return {
         ...file,
         tipologia: fileType.tipologia,
-        descripcion: fileType.descripcion
+        descripcion: fileType.descripcion,
+        folder: folderPath
       };
-    }).filter(file => {
-      // Filtrar basándose en coincidencias de texto en la descripción
-      const descripcion = file.descripcion.toLowerCase();
-      
-      if (userGroup === 'Facturas') {
-        // Si el usuario tiene acceso a Facturas, mostrar archivos que contengan "factur" en la descripción
-        return descripcion.includes('factur');
-      } else if (userGroup === 'Cartas') {
-        // Si el usuario tiene acceso a Cartas, mostrar archivos que contengan "cartas" en la descripción
-        return descripcion.includes('cartas');
-      }
-      
-      // Por defecto, no mostrar nada si el grupo no es reconocido
-      return false;
     });
     
-    console.log(`Archivos filtrados: ${filesWithTypes.length} de ${files.length} total`);
+    console.log(`Archivos encontrados en ${folderPath}: ${filesWithTypes.length}`);
     res.json(filesWithTypes);
   } catch (error) {
     console.error('Error obteniendo archivos:', error);
@@ -121,28 +143,60 @@ app.get('/api/getFiles', fullAuthMiddleware, async (req, res) => {
 });
 
 // Obtener información específica de un archivo CSV (requiere autenticación + autorización)
-app.get('/api/getFileInfo/:fileName', fullAuthMiddleware, fileAuthorizationMiddleware, async (req, res) => {
+app.get('/api/getFileInfo/:fileName', fullAuthMiddleware, async (req, res) => {
   try {
     const fileName = req.params.fileName;
+    const folderPath = req.query.folder; // Obtener carpeta de query params
+    
+    if (!folderPath) {
+      return res.status(400).json({
+        error: 'Parámetro folder requerido'
+      });
+    }
+
+    // Verificar que el usuario tiene acceso a esta carpeta
+    const basePath = req.userAuth.grupo_documentos;
+    if (!folderPath.startsWith(basePath)) {
+      return res.status(403).json({
+        error: 'Acceso denegado a esta carpeta'
+      });
+    }
+
     // Usar el bucket autorizado del usuario
     const bucket = req.userAuth.bucket;
-    const sourcePrefix = process.env.S3_SOURCE_PREFIX || 'Recepcion/Muestreo/';
-    const key = `${sourcePrefix}${fileName}`;
+    const key = `${folderPath}/${fileName}`;
     
-    console.log(`Obteniendo información del archivo: ${fileName} para usuario: ${req.user.username}`);
+    console.log(`Obteniendo información del archivo: ${fileName} en ${folderPath} para usuario: ${req.user.username}`);
+    
+    // Verificar acceso al archivo específico
+    const { getFileTypeFromName } = require('./config/fileTypes');
+    const fileTypeInfo = getFileTypeFromName(fileName);
+    
+    const accessCheck = await authorizationService.canAccessFile(
+      req.user.username, 
+      fileName, 
+      fileTypeInfo,
+      folderPath
+    );
+
+    if (!accessCheck.canAccess) {
+      console.log(`Acceso denegado al archivo ${fileName} para usuario ${req.user.username}: ${accessCheck.reason}`);
+      return res.status(403).json({
+        error: 'Acceso denegado al archivo',
+        message: accessCheck.reason
+      });
+    }
     
     const fileContent = await s3Services.getFileContent(bucket, key);
     const parsedData = await s3Services.parseCSV(fileContent);
     
-    // La información de tipología ya está disponible en req.fileTypeInfo gracias al fileAuthorizationMiddleware
-    const fileType = req.fileTypeInfo;
-    
     res.json({
       fileName,
-      tipologia: fileType.tipologia,
-      descripcion: fileType.descripcion,
+      folderPath,
+      tipologia: fileTypeInfo.tipologia,
+      descripcion: fileTypeInfo.descripcion,
       data: parsedData,
-      userGroup: req.userAuth.grupo_documentos // Información adicional del usuario
+      userGroup: req.userAuth.grupo_documentos
     });
   } catch (error) {
     console.error('Error obteniendo información del archivo:', error);
@@ -158,49 +212,48 @@ app.post('/api/processFile', fullAuthMiddleware, async (req, res) => {
   try {
     const { 
       fileName, 
-      idSpool, 
-      tipoDocumento, 
+      folderPath,
       resultado 
     } = req.body;
 
-    // Verificar que el usuario puede acceder a este archivo
-    const fileType = getFileTypeFromName(fileName);
-    const accessCheck = await authorizationService.canAccessFile(
-      req.user.username,
-      fileName,
-      fileType
-    );
+    if (!fileName || !folderPath || !resultado) {
+      return res.status(400).json({
+        error: 'Datos incompletos',
+        message: 'Se requieren fileName, folderPath y resultado'
+      });
+    }
 
-    if (!accessCheck.canAccess) {
+    // Verificar que el usuario tiene acceso a esta carpeta
+    const basePath = req.userAuth.grupo_documentos;
+    if (!folderPath.startsWith(basePath)) {
       return res.status(403).json({
-        error: 'Acceso denegado',
-        message: accessCheck.reason
+        error: 'Acceso denegado a esta carpeta'
       });
     }
     
-    // Usar información del usuario autenticado y su bucket autorizado
+    // Información del usuario autenticado
     const idUsuario = req.user.username;
     const nombreUsuario = req.user.name || req.user.username;
-    const bucket = req.userAuth.bucket; // Usar bucket autorizado del usuario
+    const bucket = req.userAuth.bucket;
+    const timestamp = new Date().toISOString();
     
-    const sourcePrefix = process.env.S3_SOURCE_PREFIX || 'Recepcion/Muestreo/';
-    const destinationPrefix = process.env.S3_DESTINATION_PREFIX || 'Recepcion/Muestreo/Resultado/';
-    const sourceKey = `${sourcePrefix}${fileName}`;
-    const destinationKey = `${destinationPrefix}${fileName}`;
+    console.log(`Procesando archivo completo: ${fileName} en ${folderPath}`);
+    console.log(`Resultado: ${resultado}, Usuario: ${nombreUsuario} (${idUsuario})`);
     
-    console.log(`Procesando archivo: ${fileName}`);
-    console.log(`Resultado: ${resultado}, Usuario: ${nombreUsuario} (${idUsuario}), Bucket: ${bucket}`);
+    // 1. PASO 1: Obtener y procesar el CSV
+    const sourceKey = `${folderPath}/${fileName}`;
+    const destinationKey = `Recepcion/Muestreo/Resultado/${fileName}`;
     
-    // Obtener el archivo actual
+    // Obtener el contenido actual del CSV
     const currentContent = await s3Services.getFileContent(bucket, sourceKey);
     
-    // Actualizar el contenido del archivo con nueva información
-    const timestamp = new Date().toISOString();
+    // Parsear el CSV para obtener los idDocumento
+    const csvData = await s3Services.parseCSV(currentContent);
+    
+    // Actualizar el contenido del CSV con resultado, usuario y timestamp
     const updatedContent = await s3Services.updateCSVContent(
       currentContent, 
       {
-        idSpool,
-        tipoDocumento,
         resultado,
         idUsuario,
         nombreUsuario,
@@ -208,15 +261,59 @@ app.post('/api/processFile', fullAuthMiddleware, async (req, res) => {
       }
     );
     
-    // Subir el archivo actualizado a la carpeta de Resultado
+    // 2. PASO 2: Mover el CSV a Resultado (PRIMERO como solicitaste)
+    console.log(`Moviendo CSV de ${sourceKey} a ${destinationKey}`);
     await s3Services.uploadFile(bucket, destinationKey, updatedContent);
-    
-    // Eliminar el archivo de la ubicación original
     await s3Services.deleteFile(bucket, sourceKey);
+    
+    // 3. PASO 3: Mover cada PDF individualmente (UNO POR UNO)
+    const movedDocuments = [];
+    const failedDocuments = [];
+    
+    for (const row of csvData) {
+      if (row.idDocumento) {
+        try {
+          const pdfSourceKey = `Recepcion/${row.idDocumento}`;
+          const pdfDestinationKey = `Recepcion/Muestreo/BackupPDF/${row.idDocumento}`;
+          
+          // Verificar si el archivo PDF existe antes de intentar moverlo
+          const pdfExists = await s3Services.fileExists(bucket, pdfSourceKey);
+          
+          if (pdfExists) {
+            console.log(`Moviendo PDF: ${row.idDocumento}`);
+            await s3Services.moveFile(bucket, pdfSourceKey, pdfDestinationKey);
+            movedDocuments.push(row.idDocumento);
+          } else {
+            console.warn(`PDF no encontrado: ${row.idDocumento} en ${pdfSourceKey}`);
+            failedDocuments.push({
+              idDocumento: row.idDocumento,
+              reason: 'Archivo no encontrado'
+            });
+          }
+        } catch (error) {
+          console.error(`Error moviendo PDF ${row.idDocumento}:`, error);
+          failedDocuments.push({
+            idDocumento: row.idDocumento,
+            reason: error.message
+          });
+        }
+      }
+    }
+    
+    console.log(`Procesamiento completado: ${movedDocuments.length} PDFs movidos exitosamente`);
+    if (failedDocuments.length > 0) {
+      console.log(`${failedDocuments.length} PDFs no pudieron ser movidos:`, failedDocuments);
+    }
     
     res.json({ 
       success: true, 
-      message: `Archivo ${fileName} procesado y movido a Resultado`,
+      message: `Archivo ${fileName} procesado completamente`,
+      csvMoved: true,
+      csvDestination: destinationKey,
+      documentsProcessed: csvData.length,
+      documentsMovedSuccessfully: movedDocuments.length,
+      documentsFailed: failedDocuments.length,
+      failedDocuments: failedDocuments,
       processedBy: nombreUsuario,
       processedAt: timestamp,
       resultado,

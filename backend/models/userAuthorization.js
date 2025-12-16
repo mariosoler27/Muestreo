@@ -56,7 +56,7 @@ class UserAuthorization {
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         username TEXT UNIQUE NOT NULL,
         bucket TEXT NOT NULL,
-        grupo_documentos TEXT NOT NULL CHECK (grupo_documentos IN ('Cartas', 'Facturas')),
+        grupo_documentos TEXT NOT NULL,
         activo BOOLEAN NOT NULL DEFAULT 1,
         fecha_creacion DATETIME DEFAULT CURRENT_TIMESTAMP
       )
@@ -328,13 +328,13 @@ class UserAuthorization {
         await this.createUserAuthorization(
           'usuario1',
           'rgpdintcomer-des-deltasmile-servinform',
-          'Cartas'
+          'Recepcion/Muestreo/Cartas'
         );
         
         await this.createUserAuthorization(
           'usuario2', 
           'rgpdintcomer-des-deltasmile-servinform',
-          'Facturas'
+          'Recepcion/Muestreo/Facturas'
         );
         
         console.log('Datos de prueba de autorización inicializados');
