@@ -224,6 +224,17 @@ export const deleteAuthorization = async (id) => {
   }
 };
 
+// Verificar si un documento existe en S3 (requiere autenticación)
+export const checkDocumentExists = async (documentId) => {
+  try {
+    const response = await authenticatedFetch(`${API_BASE_URL}/checkDocument/${encodeURIComponent(documentId)}`);
+    return await handleResponse(response);
+  } catch (error) {
+    console.error('Error en checkDocumentExists:', error);
+    throw error;
+  }
+};
+
 // Descargar documento desde S3 (requiere autenticación)
 export const downloadDocument = async (documentId) => {
   try {

@@ -279,6 +279,51 @@
   cursor: not-allowed;
 }
 
+/* Estados de documentos */
+.checking-document {
+  color: var(--info);
+  font-size: var(--font-size-sm);
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  animation: pulse 2s infinite;
+}
+
+.pending-document {
+  color: var(--warning);
+  font-size: var(--font-size-sm);
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  font-weight: var(--font-weight-medium);
+}
+
+.unknown-document {
+  color: var(--gray-500);
+  font-size: var(--font-size-sm);
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+}
+
+.no-document {
+  color: var(--gray-400);
+  font-style: italic;
+}
+
+/* Animación para el estado de verificación */
+@keyframes pulse {
+  0% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
 /* Responsive */
 @media (max-width: 768px) {
   .csv-data-section, 
@@ -304,5 +349,11 @@
   .csv-table th, 
   .csv-table td {
     padding: var(--spacing-sm);
+  }
+
+  .checking-document,
+  .pending-document,
+  .unknown-document {
+    font-size: var(--font-size-xs);
   }
 }

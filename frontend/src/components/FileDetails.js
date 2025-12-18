@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
-import { downloadDocument } from '../services/api';
+import { downloadDocument, checkDocumentExists } from '../services/api';
 import { getDocumentTypeDisplay, isValidDocumentType } from '../config/documentTypes';
 
 const FileDetails = ({ fileDetails, selectedFile, loading, onProcessFile }) => {
   const [downloadingDocument, setDownloadingDocument] = useState(null); // Cambiar a null para manejar ID específico
+  const [documentExistence, setDocumentExistence] = useState({}); // Para rastrear qué documentos existen
+  const [checkingDocuments, setCheckingDocuments] = useState(false);
   const [formData, setFormData] = useState({
     idSpool: '',
     tipoDocumento: '',
@@ -47,7 +49,7 @@ const FileDetails = ({ fileDetails, selectedFile, loading, onProcessFile }) => {
     }));
   }, []);
 
-  // Actualizar formData cuando cambian los detalles del archivo
+  // Verificar existencia de documentos cuando cambian los detalles del archivo
   React.useEffect(() => {
     if (fileDetails && fileDetails.data && fileDetails.data.length > 0) {
       const firstRecord = fileDetails.data[0];
@@ -57,8 +59,43 @@ const FileDetails = ({ fileDetails, selectedFile, loading, onProcessFile }) => {
         tipoDocumento: firstRecord.tipologia || '', // Usar tipologia del CSV
         idDocumento: firstRecord.idDocumento || ''
       }));
+      
+      // Verificar existencia de todos los documentos
+      checkAllDocumentsExistence();
     }
   }, [fileDetails]);
+
+  // Función para verificar la existencia de todos los documentos
+  const checkAllDocumentsExistence = async () => {
+    if (!fileDetails || !fileDetails.data) return;
+    
+    setCheckingDocuments(true);
+    const existenceMap = {};
+    
+    try {
+      // Verificar cada documento de forma paralela
+      const checkPromises = fileDetails.data
+        .filter(row => row.idDocumento) // Solo verificar filas con idDocumento
+        .map(async (row) => {
+          try {
+            const result = await checkDocumentExists(row.idDocumento);
+            existenceMap[row.idDocumento] = result.exists;
+          } catch (error) {
+            console.error(`Error verificando documento ${row.idDocumento}:`, error);
+            existenceMap[row.idDocumento] = false;
+          }
+        });
+      
+      await Promise.all(checkPromises);
+      setDocumentExistence(existenceMap);
+      
+      console.log('Verificación de documentos completada:', existenceMap);
+    } catch (error) {
+      console.error('Error en verificación masiva de documentos:', error);
+    } finally {
+      setCheckingDocuments(false);
+    }
+  };
 
   const handleInputChange = (field, value) => {
     setFormData(prev => ({
@@ -208,16 +245,32 @@ const FileDetails = ({ fileDetails, selectedFile, loading, onProcessFile }) => {
                     </td>
                     <td>{row.idDocumento}</td>
                     <td>
-                      {row.idDocumento && (
-                        <button
-                          type="button"
-                          className="download-btn-small"
-                          onClick={() => handleDownloadDocumentFromRow(row.idDocumento)}
-                          disabled={downloadingDocument === row.idDocumento}
-                          title={`Descargar ${row.idDocumento}`}
-                        >
-                          {downloadingDocument === row.idDocumento ? '⏳' : '📥'}
-                        </button>
+                      {row.idDocumento ? (
+                        checkingDocuments ? (
+                          <span className="checking-document" title="Verificando existencia...">
+                            🔄 Verificando...
+                          </span>
+                        ) : documentExistence[row.idDocumento] === true ? (
+                          <button
+                            type="button"
+                            className="download-btn-small"
+                            onClick={() => handleDownloadDocumentFromRow(row.idDocumento)}
+                            disabled={downloadingDocument === row.idDocumento}
+                            title={`Descargar ${row.idDocumento}`}
+                          >
+                            {downloadingDocument === row.idDocumento ? '⏳' : '📥'}
+                          </button>
+                        ) : documentExistence[row.idDocumento] === false ? (
+                          <span className="pending-document" title={`Documento ${row.idDocumento} no encontrado en S3`}>
+                            ⏸️ Pendiente fichero
+                          </span>
+                        ) : (
+                          <span className="unknown-document" title="Estado desconocido">
+                            ❓ No verificado
+                          </span>
+                        )
+                      ) : (
+                        <span className="no-document">-</span>
                       )}
                     </td>
                   </tr>

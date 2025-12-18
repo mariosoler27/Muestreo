@@ -416,6 +416,42 @@ app.get('/api/user/availableBuckets', fullAuthMiddleware, async (req, res) => {
   }
 });
 
+// Verificar si un documento existe en S3 (requiere autenticación + autorización)
+app.get('/api/checkDocument/:documentId', fullAuthMiddleware, async (req, res) => {
+  try {
+    const documentId = req.params.documentId;
+    
+    if (!documentId) {
+      return res.status(400).json({
+        error: 'ID de documento requerido'
+      });
+    }
+
+    // Usar el bucket autorizado del usuario
+    const bucket = req.userAuth.bucket;
+    const documentPath = `Recepcion/${documentId}`;
+    
+    console.log(`Verificando existencia del documento: ${documentId} para usuario: ${req.user.username}`);
+    console.log(`Bucket: ${bucket}, Ruta: ${documentPath}`);
+    
+    // Verificar que el archivo existe
+    const exists = await s3Services.fileExists(bucket, documentPath);
+    
+    res.json({ 
+      exists,
+      documentId,
+      path: documentPath
+    });
+    
+  } catch (error) {
+    console.error('Error verificando documento:', error);
+    res.status(500).json({ 
+      error: 'Error verificando documento', 
+      details: error.message 
+    });
+  }
+});
+
 // Descargar documento desde S3 (requiere autenticación + autorización)
 app.get('/api/downloadDocument/:documentId', fullAuthMiddleware, async (req, res) => {
   try {
