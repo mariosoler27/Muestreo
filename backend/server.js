@@ -168,22 +168,17 @@ app.get('/api/getFileInfo/:fileName', fullAuthMiddleware, async (req, res) => {
     
     console.log(`Obteniendo información del archivo: ${fileName} en ${folderPath} para usuario: ${req.user.username}`);
     
-    // Verificar acceso al archivo específico
+    // Verificar acceso al archivo específico usando la autorización específica ya validada
     const { getFileTypeFromName } = require('./config/fileTypes');
     const fileTypeInfo = getFileTypeFromName(fileName);
     
-    const accessCheck = await authorizationService.canAccessFile(
-      req.user.username, 
-      fileName, 
-      fileTypeInfo,
-      folderPath
-    );
-
-    if (!accessCheck.canAccess) {
-      console.log(`Acceso denegado al archivo ${fileName} para usuario ${req.user.username}: ${accessCheck.reason}`);
+    // Ya hemos verificado que el usuario tiene acceso a esta carpeta usando req.userAuth
+    // Solo necesitamos verificar que la carpeta está dentro de la ruta autorizada
+    if (!folderPath.startsWith(req.userAuth.grupo_documentos)) {
+      console.log(`Acceso denegado al archivo ${fileName} para usuario ${req.user.username}: Carpeta fuera de la ruta autorizada`);
       return res.status(403).json({
         error: 'Acceso denegado al archivo',
-        message: accessCheck.reason
+        message: `El archivo "${fileName}" en la carpeta "${folderPath}" no está dentro de la ruta autorizada "${req.userAuth.grupo_documentos}"`
       });
     }
     
@@ -381,6 +376,40 @@ app.get('/api/user/authorization', fullAuthMiddleware, async (req, res) => {
     console.error('Error obteniendo autorización del usuario:', error);
     res.status(500).json({
       error: 'Error obteniendo autorización',
+      details: error.message
+    });
+  }
+});
+
+// Obtener todas las autorizaciones disponibles para un usuario
+app.get('/api/user/availableBuckets', fullAuthMiddleware, async (req, res) => {
+  try {
+    const allAuthorizations = await authorizationService.getAllUserAuthorizationConfigs(req.user.username);
+    
+    if (allAuthorizations.length === 0) {
+      return res.status(404).json({
+        error: 'No se encontraron autorizaciones para el usuario'
+      });
+    }
+
+    // Crear una estructura más amigable para el frontend
+    const buckets = allAuthorizations.map(auth => ({
+      id: auth.id,
+      bucket: auth.bucket,
+      grupoDocumentos: auth.grupo_documentos,
+      descripcion: auth.grupo_documentos.split('/').pop(), // Último segmento como descripción amigable
+      fechaCreacion: auth.fecha_creacion
+    }));
+
+    res.json({
+      success: true,
+      buckets: buckets,
+      currentBucket: req.userAuth // La autorización actual del middleware
+    });
+  } catch (error) {
+    console.error('Error obteniendo buckets disponibles:', error);
+    res.status(500).json({
+      error: 'Error obteniendo buckets disponibles',
       details: error.message
     });
   }

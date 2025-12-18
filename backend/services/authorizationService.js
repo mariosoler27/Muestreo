@@ -60,7 +60,7 @@ class AuthorizationService {
   }
 
   /**
-   * Obtener la configuración de autorización de un usuario
+   * Obtener la configuración de autorización de un usuario (primera encontrada)
    */
   async getUserAuthorizationConfig(username) {
     try {
@@ -68,6 +68,32 @@ class AuthorizationService {
       return userAuth;
     } catch (error) {
       console.error('Error obteniendo configuración de autorización:', error);
+      return null;
+    }
+  }
+
+  /**
+   * Obtener todas las configuraciones de autorización de un usuario
+   */
+  async getAllUserAuthorizationConfigs(username) {
+    try {
+      const userAuths = await this.userAuthModel.getAllUserAuthorizations(username);
+      return userAuths;
+    } catch (error) {
+      console.error('Error obteniendo todas las configuraciones de autorización:', error);
+      return [];
+    }
+  }
+
+  /**
+   * Obtener una autorización específica por bucket y grupo
+   */
+  async getUserAuthorizationSpecific(username, bucket, grupoDocumentos) {
+    try {
+      const userAuth = await this.userAuthModel.getUserAuthorizationSpecific(username, bucket, grupoDocumentos);
+      return userAuth;
+    } catch (error) {
+      console.error('Error obteniendo autorización específica:', error);
       return null;
     }
   }

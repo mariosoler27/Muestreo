@@ -21,6 +21,19 @@ const handleResponse = async (response) => {
   return response.json();
 };
 
+// Variable global para el bucket seleccionado
+let selectedBucketInfo = null;
+
+// Función para establecer el bucket seleccionado
+export const setSelectedBucket = (bucketInfo) => {
+  selectedBucketInfo = bucketInfo;
+};
+
+// Función para obtener el bucket seleccionado
+export const getSelectedBucket = () => {
+  return selectedBucketInfo;
+};
+
 // Función helper para hacer peticiones autenticadas
 const authenticatedFetch = async (url, options = {}) => {
   // Verificar que los tokens son válidos antes de hacer la petición
@@ -31,11 +44,19 @@ const authenticatedFetch = async (url, options = {}) => {
   // Añadir headers de autenticación
   const authHeaders = getAuthHeaders();
   
+  // Añadir headers del bucket seleccionado si existe
+  const bucketHeaders = {};
+  if (selectedBucketInfo) {
+    bucketHeaders['X-Selected-Bucket-Id'] = selectedBucketInfo.id.toString();
+    bucketHeaders['X-Selected-Group-Documents'] = selectedBucketInfo.grupoDocumentos;
+  }
+  
   const requestOptions = {
     ...options,
     headers: {
       'Content-Type': 'application/json',
       ...authHeaders,
+      ...bucketHeaders,
       ...options.headers
     }
   };
@@ -112,6 +133,28 @@ export const getFilesByFolder = async (folderPath) => {
     return await handleResponse(response);
   } catch (error) {
     console.error('Error en getFilesByFolder:', error);
+    throw error;
+  }
+};
+
+// Obtener buckets disponibles para el usuario (requiere autenticación)
+export const getAvailableBuckets = async () => {
+  try {
+    const response = await authenticatedFetch(`${API_BASE_URL}/user/availableBuckets`);
+    return await handleResponse(response);
+  } catch (error) {
+    console.error('Error en getAvailableBuckets:', error);
+    throw error;
+  }
+};
+
+// Obtener autorización actual del usuario (requiere autenticación)
+export const getUserAuthorization = async () => {
+  try {
+    const response = await authenticatedFetch(`${API_BASE_URL}/user/authorization`);
+    return await handleResponse(response);
+  } catch (error) {
+    console.error('Error en getUserAuthorization:', error);
     throw error;
   }
 };

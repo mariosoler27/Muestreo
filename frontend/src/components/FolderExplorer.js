@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { getFolders } from '../services/api';
 
-const FolderExplorer = ({ onFolderSelect, selectedFolder, loading: parentLoading }) => {
+const FolderExplorer = ({ onFolderSelect, selectedFolder, loading: parentLoading, refreshKey }) => {
   const [expandedFolders, setExpandedFolders] = useState(new Set());
   const [folderStructure, setFolderStructure] = useState([]);
   const [userAuthorization, setUserAuthorization] = useState(null);
@@ -11,6 +11,13 @@ const FolderExplorer = ({ onFolderSelect, selectedFolder, loading: parentLoading
   useEffect(() => {
     loadUserFolders();
   }, []);
+
+  // Recargar cuando cambie el refreshKey (cambio de bucket)
+  useEffect(() => {
+    if (refreshKey) {
+      loadUserFolders();
+    }
+  }, [refreshKey]);
 
   const loadUserFolders = async () => {
     try {

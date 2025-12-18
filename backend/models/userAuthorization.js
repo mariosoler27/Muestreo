@@ -54,11 +54,12 @@ class UserAuthorization {
     const createTableSQL = `
       CREATE TABLE IF NOT EXISTS user_authorizations (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
-        username TEXT UNIQUE NOT NULL,
+        username TEXT NOT NULL,
         bucket TEXT NOT NULL,
         grupo_documentos TEXT NOT NULL,
         activo BOOLEAN NOT NULL DEFAULT 1,
-        fecha_creacion DATETIME DEFAULT CURRENT_TIMESTAMP
+        fecha_creacion DATETIME DEFAULT CURRENT_TIMESTAMP,
+        UNIQUE(username, bucket, grupo_documentos)
       )
     `;
 
@@ -144,16 +145,46 @@ class UserAuthorization {
   }
 
   /**
-   * Obtener autorización de un usuario
+   * Obtener autorización de un usuario (primera encontrada - para compatibilidad)
    */
   async getUserAuthorization(username) {
     try {
       await this.ensureReady();
-      const sql = 'SELECT * FROM user_authorizations WHERE username = ? AND activo = 1';
+      const sql = 'SELECT * FROM user_authorizations WHERE username = ? AND activo = 1 ORDER BY fecha_creacion DESC LIMIT 1';
       const userAuth = await this.getQuery(sql, [username]);
       return userAuth || null;
     } catch (error) {
       console.error('Error obteniendo autorización de usuario:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Obtener todas las autorizaciones de un usuario
+   */
+  async getAllUserAuthorizations(username) {
+    try {
+      await this.ensureReady();
+      const sql = 'SELECT * FROM user_authorizations WHERE username = ? AND activo = 1 ORDER BY fecha_creacion DESC';
+      const userAuths = await this.allQuery(sql, [username]);
+      return userAuths || [];
+    } catch (error) {
+      console.error('Error obteniendo autorizaciones de usuario:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Obtener una autorización específica por usuario, bucket y grupo
+   */
+  async getUserAuthorizationSpecific(username, bucket, grupoDocumentos) {
+    try {
+      await this.ensureReady();
+      const sql = 'SELECT * FROM user_authorizations WHERE username = ? AND bucket = ? AND grupo_documentos = ? AND activo = 1';
+      const userAuth = await this.getQuery(sql, [username, bucket, grupoDocumentos]);
+      return userAuth || null;
+    } catch (error) {
+      console.error('Error obteniendo autorización específica de usuario:', error);
       throw error;
     }
   }
@@ -165,20 +196,21 @@ class UserAuthorization {
     try {
       await this.ensureReady();
       
-      // Verificar si ya existe una autorización para este usuario
-      const existing = await this.getUserAuthorization(username);
+      // Verificar si ya existe esta autorización específica
+      const existing = await this.getUserAuthorizationSpecific(username, bucket, grupoDocumentos);
       
       if (existing) {
-        // Actualizar autorización existente
-        const updateSql = `
-          UPDATE user_authorizations 
-          SET bucket = ?, grupo_documentos = ?, activo = 1, fecha_creacion = CURRENT_TIMESTAMP
-          WHERE username = ?
-        `;
-        await this.runQuery(updateSql, [bucket, grupoDocumentos, username]);
-        
-        // Devolver la autorización actualizada
-        return await this.getUserAuthorization(username);
+        // Ya existe esta combinación exacta, activarla si está inactiva
+        if (!existing.activo) {
+          const updateSql = `
+            UPDATE user_authorizations 
+            SET activo = 1, fecha_creacion = CURRENT_TIMESTAMP
+            WHERE username = ? AND bucket = ? AND grupo_documentos = ?
+          `;
+          await this.runQuery(updateSql, [username, bucket, grupoDocumentos]);
+          return await this.getUserAuthorizationSpecific(username, bucket, grupoDocumentos);
+        }
+        return existing;
       } else {
         // Crear nueva autorización
         const insertSql = `
@@ -325,6 +357,7 @@ class UserAuthorization {
       if (existingData.length === 0) {
         console.log('Inicializando datos de prueba de autorización...');
         
+        // Usuario con múltiples autorizaciones para probar el selector
         await this.createUserAuthorization(
           'usuario1',
           'rgpdintcomer-des-deltasmile-servinform',
@@ -332,9 +365,16 @@ class UserAuthorization {
         );
         
         await this.createUserAuthorization(
-          'usuario2', 
+          'usuario1',
           'rgpdintcomer-des-deltasmile-servinform',
           'Recepcion/Muestreo/Facturas'
+        );
+        
+        // Usuario con una sola autorización
+        await this.createUserAuthorization(
+          'usuario2', 
+          'rgpdintcomer-des-deltasmile-servinform',
+          'Recepcion/Muestreo/Cartas'
         );
         
         console.log('Datos de prueba de autorización inicializados');

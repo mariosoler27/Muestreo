@@ -1,0 +1,196 @@
+.bucket-selector {
+  padding: 15px;
+  margin: 10px 0;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  background-color: #f9f9f9;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.bucket-selector.loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 60px;
+  background-color: #f0f8ff;
+  border-color: #007acc;
+}
+
+.bucket-selector.loading span {
+  color: #007acc;
+  font-style: italic;
+}
+
+.bucket-selector.error {
+  background-color: #fff5f5;
+  border-color: #e53e3e;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+
+.bucket-selector.error .error-text {
+  color: #e53e3e;
+  font-weight: 500;
+}
+
+.bucket-selector.error .retry-btn {
+  background-color: #e53e3e;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: background-color 0.2s;
+}
+
+.bucket-selector.error .retry-btn:hover {
+  background-color: #c53030;
+}
+
+.bucket-selector.no-buckets {
+  background-color: #fffbeb;
+  border-color: #f59e0b;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 60px;
+}
+
+.bucket-selector.no-buckets span {
+  color: #d97706;
+  font-weight: 500;
+}
+
+.bucket-selector.single-bucket {
+  background-color: #f0fff4;
+  border-color: #38a169;
+}
+
+.bucket-selector.single-bucket .bucket-info {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.bucket-selector.single-bucket .bucket-label {
+  font-weight: 600;
+  color: #2d3748;
+}
+
+.bucket-selector.single-bucket .bucket-name {
+  background-color: #38a169;
+  color: white;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.bucket-selector.multiple-buckets {
+  background-color: #fff;
+  border-color: #007acc;
+}
+
+.bucket-selector.multiple-buckets .selector-container {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 15px;
+}
+
+.bucket-selector.multiple-buckets .selector-label {
+  font-weight: 600;
+  color: #2d3748;
+  font-size: 14px;
+}
+
+.bucket-selector.multiple-buckets .bucket-dropdown {
+  padding: 10px;
+  border: 2px solid #e2e8f0;
+  border-radius: 6px;
+  background-color: white;
+  font-size: 14px;
+  color: #2d3748;
+  cursor: pointer;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.bucket-selector.multiple-buckets .bucket-dropdown:focus {
+  outline: none;
+  border-color: #007acc;
+  box-shadow: 0 0 0 3px rgba(0, 122, 204, 0.1);
+}
+
+.bucket-selector.multiple-buckets .bucket-dropdown:hover {
+  border-color: #a0aec0;
+}
+
+.bucket-selector.multiple-buckets .current-bucket-info {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+  background-color: #edf2f7;
+  border-radius: 6px;
+  border-left: 4px solid #007acc;
+}
+
+.bucket-selector.multiple-buckets .info-label {
+  font-weight: 500;
+  color: #4a5568;
+  font-size: 13px;
+}
+
+.bucket-selector.multiple-buckets .info-value {
+  color: #007acc;
+  font-weight: 600;
+  font-size: 13px;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .bucket-selector {
+    padding: 12px;
+    margin: 8px 0;
+  }
+  
+  .bucket-selector.multiple-buckets .selector-container {
+    gap: 6px;
+  }
+  
+  .bucket-selector.multiple-buckets .bucket-dropdown {
+    padding: 8px;
+    font-size: 13px;
+  }
+  
+  .bucket-selector.single-bucket .bucket-info {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+  
+  .bucket-selector.multiple-buckets .current-bucket-info {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+  }
+}
+
+/* Animaciones suaves */
+.bucket-selector {
+  transition: all 0.3s ease;
+}
+
+.bucket-selector.multiple-buckets .bucket-dropdown option {
+  padding: 8px;
+  background-color: white;
+  color: #2d3748;
+}
+
+.bucket-selector.multiple-buckets .bucket-dropdown option:checked {
+  background-color: #007acc;
+  color: white;
+}

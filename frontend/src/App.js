@@ -3,6 +3,7 @@ import './App.css';
 import FileExplorer from './components/FileExplorer';
 import FileDetails from './components/FileDetails';
 import FolderExplorer from './components/FolderExplorer';
+import BucketSelector from './components/BucketSelector';
 import Login from './components/Login';
 import { getFilesByFolder, getFileInfo, processFile } from './services/api';
 import { isAuthenticated, getUserInfo, logout, initAuth } from './services/auth';
@@ -17,6 +18,9 @@ function App() {
   const [error, setError] = useState(null);
   const [authenticated, setAuthenticated] = useState(false);
   const [user, setUser] = useState(null);
+  const [bucketInfo, setBucketInfo] = useState(null);
+  const [bucketLoading, setBucketLoading] = useState(false);
+  const [folderRefreshKey, setFolderRefreshKey] = useState(0);
 
   // Inicializar autenticación al cargar la aplicación
   useEffect(() => {
@@ -140,6 +144,45 @@ function App() {
     }
   };
 
+  // Manejar cambio de bucket
+  const handleBucketChange = async (bucketData) => {
+    console.log('Cambio de bucket:', bucketData);
+    setBucketInfo(bucketData);
+    
+    // Si se selecciona un nuevo bucket, limpiar estados y recargar
+    if (bucketData.selectedBucket) {
+      try {
+        // Limpiar selecciones actuales
+        setSelectedFolder(null);
+        setSelectedFile(null);
+        setFileDetails(null);
+        setFiles([]);
+        
+        // Forzar recarga del FolderExplorer incrementando el refreshKey
+        setFolderRefreshKey(prev => prev + 1);
+        
+        // Mostrar mensaje informativo de éxito
+        setError(`Bucket cambiado a: ${bucketData.selectedBucket.bucket}: ${bucketData.selectedBucket.grupoDocumentos}. Las carpetas se actualizarán automáticamente.`);
+        
+        // Limpiar el mensaje después de unos segundos
+        setTimeout(() => {
+          setError(null);
+        }, 3000);
+        
+        console.log('Bucket cambiado exitosamente. El FolderExplorer se actualizará con el nuevo bucket.');
+        
+      } catch (error) {
+        console.error('Error al cambiar bucket:', error);
+        setError('Error al cambiar de bucket. Por favor, inténtalo de nuevo.');
+      }
+    }
+  };
+
+  // Manejar carga de buckets
+  const handleBucketLoading = (isLoading) => {
+    setBucketLoading(isLoading);
+  };
+
   // Mostrar pantalla de login si no está autenticado
   if (!authenticated) {
     return <Login onLoginSuccess={handleLoginSuccess} />;
@@ -167,6 +210,11 @@ function App() {
         </div>
       )}
 
+      <BucketSelector
+        onBucketChange={handleBucketChange}
+        onLoading={handleBucketLoading}
+      />
+
       <main className="App-main">
         <div className="container">
           <div className="folder-panel">
@@ -174,6 +222,7 @@ function App() {
               onFolderSelect={handleFolderSelect}
               selectedFolder={selectedFolder}
               loading={loading}
+              refreshKey={folderRefreshKey}
             />
           </div>
 

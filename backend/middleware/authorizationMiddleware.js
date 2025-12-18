@@ -23,8 +23,28 @@ const authorizationMiddleware = async (req, res, next) => {
 
     const username = req.user.username;
     
-    // Obtener configuración de autorización del usuario
-    const userAuth = await authorizationService.getUserAuthorizationConfig(username);
+    // Verificar si se especifica un bucket específico en los headers
+    const selectedBucketId = req.headers['x-selected-bucket-id'];
+    const selectedGroupDocuments = req.headers['x-selected-group-documents'];
+    
+    let userAuth = null;
+    
+    if (selectedBucketId && selectedGroupDocuments) {
+      // Buscar la autorización específica
+      const allAuths = await authorizationService.getAllUserAuthorizationConfigs(username);
+      userAuth = allAuths.find(auth => auth.id === parseInt(selectedBucketId));
+      
+      if (!userAuth) {
+        console.log(`Usuario ${username} no tiene autorización para el bucket ID ${selectedBucketId}`);
+        return res.status(403).json({
+          error: 'Sin autorización para bucket específico',
+          message: 'El usuario no tiene permisos para el bucket seleccionado'
+        });
+      }
+    } else {
+      // Usar la autorización por defecto (primera encontrada)
+      userAuth = await authorizationService.getUserAuthorizationConfig(username);
+    }
     
     if (!userAuth) {
       console.log(`Usuario ${username} no tiene permisos de autorización configurados`);
@@ -47,7 +67,8 @@ const authorizationMiddleware = async (req, res, next) => {
     
     console.log(`Autorización verificada para ${username}:`, {
       bucket: userAuth.bucket,
-      grupo_documentos: userAuth.grupo_documentos
+      grupo_documentos: userAuth.grupo_documentos,
+      selected: selectedBucketId ? 'specific' : 'default'
     });
     
     next();
