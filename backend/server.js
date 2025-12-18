@@ -7,6 +7,7 @@ const {
   fullAuthMiddleware, 
   authorizationMiddleware, 
   fileAuthorizationMiddleware,
+  fullAdminMiddleware,
   authorizationService 
 } = require('./middleware/authorizationMiddleware');
 const { authenticateUser } = require('./services/authService');
@@ -467,6 +468,119 @@ app.get('/api/downloadDocument/:documentId', fullAuthMiddleware, async (req, res
         details: error.message 
       });
     }
+  }
+});
+
+// ===== ENDPOINTS DE ADMINISTRACIÓN (Solo para usuarios admin) =====
+
+// Verificar si el usuario actual es administrador
+app.get('/api/admin/isAdmin', fullAuthMiddleware, async (req, res) => {
+  try {
+    const isAdmin = await authorizationService.isUserAdmin(req.user.username);
+    res.json({ 
+      success: true, 
+      isAdmin,
+      username: req.user.username
+    });
+  } catch (error) {
+    console.error('Error verificando admin:', error);
+    res.status(500).json({
+      error: 'Error verificando permisos de administración',
+      details: error.message
+    });
+  }
+});
+
+// Obtener todas las autorizaciones (solo admins)
+app.get('/api/admin/all-authorizations', fullAdminMiddleware, async (req, res) => {
+  try {
+    const result = await authorizationService.getAllAuthorizations();
+    res.json(result);
+  } catch (error) {
+    console.error('Error obteniendo todas las autorizaciones:', error);
+    res.status(500).json({
+      error: 'Error obteniendo autorizaciones',
+      details: error.message
+    });
+  }
+});
+
+// Crear nueva autorización completa (solo admins)
+app.post('/api/admin/create-authorization', fullAdminMiddleware, async (req, res) => {
+  try {
+    const { username, bucket, grupo_documentos, admin } = req.body;
+    
+    if (!username || !bucket || !grupo_documentos) {
+      return res.status(400).json({
+        error: 'Datos incompletos',
+        message: 'Se requieren username, bucket y grupo_documentos'
+      });
+    }
+    
+    const result = await authorizationService.createAuthorizationAdmin(
+      username, 
+      bucket, 
+      grupo_documentos,
+      admin || false
+    );
+    
+    console.log(`Admin ${req.user.username} creó nueva autorización para ${username}`);
+    res.json(result);
+  } catch (error) {
+    console.error('Error creando autorización (admin):', error);
+    res.status(500).json({
+      error: 'Error creando autorización',
+      details: error.message
+    });
+  }
+});
+
+// Actualizar autorización por ID (solo admins)
+app.put('/api/admin/update-authorization/:id', fullAdminMiddleware, async (req, res) => {
+  try {
+    const id = parseInt(req.params.id);
+    const updates = req.body;
+    
+    if (!id) {
+      return res.status(400).json({
+        error: 'ID de autorización requerido'
+      });
+    }
+    
+    const result = await authorizationService.updateAuthorizationById(id, updates);
+    
+    console.log(`Admin ${req.user.username} actualizó autorización ID ${id}`);
+    res.json(result);
+  } catch (error) {
+    console.error('Error actualizando autorización (admin):', error);
+    res.status(500).json({
+      error: 'Error actualizando autorización',
+      details: error.message
+    });
+  }
+});
+
+// Eliminar autorización por ID (solo admins)
+app.delete('/api/admin/delete-authorization/:id', fullAdminMiddleware, async (req, res) => {
+  try {
+    const id = parseInt(req.params.id);
+    
+    if (!id) {
+      return res.status(400).json({
+        error: 'ID de autorización requerido'
+      });
+    }
+    
+    const result = await authorizationService.deleteAuthorization(id);
+    
+    console.log(`Admin ${req.user.username} eliminó autorización ID ${id}`);
+    res.json(result);
+  } catch (error) {
+    console.error('Error eliminando autorización (admin):', error);
+    res.status(500).json({
+      error: 'Error eliminando autorización',
+      details: error.message
+    });
   }
 });
 

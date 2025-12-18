@@ -159,6 +159,71 @@ export const getUserAuthorization = async () => {
   }
 };
 
+// Verificar si el usuario es administrador (requiere autenticación)
+export const checkIsAdmin = async () => {
+  try {
+    const response = await authenticatedFetch(`${API_BASE_URL}/admin/isAdmin`);
+    return await handleResponse(response);
+  } catch (error) {
+    console.error('Error en checkIsAdmin:', error);
+    return { success: false, isAdmin: false };
+  }
+};
+
+// ===== FUNCIONES DE ADMINISTRACIÓN =====
+
+// Obtener todas las autorizaciones (solo admins)
+export const getAllAuthorizations = async () => {
+  try {
+    const response = await authenticatedFetch(`${API_BASE_URL}/admin/all-authorizations`);
+    return await handleResponse(response);
+  } catch (error) {
+    console.error('Error en getAllAuthorizations:', error);
+    throw error;
+  }
+};
+
+// Crear nueva autorización (solo admins)
+export const createAuthorization = async (authData) => {
+  try {
+    const response = await authenticatedFetch(`${API_BASE_URL}/admin/create-authorization`, {
+      method: 'POST',
+      body: JSON.stringify(authData),
+    });
+    return await handleResponse(response);
+  } catch (error) {
+    console.error('Error en createAuthorization:', error);
+    throw error;
+  }
+};
+
+// Actualizar autorización (solo admins)
+export const updateAuthorization = async (id, updates) => {
+  try {
+    const response = await authenticatedFetch(`${API_BASE_URL}/admin/update-authorization/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(updates),
+    });
+    return await handleResponse(response);
+  } catch (error) {
+    console.error('Error en updateAuthorization:', error);
+    throw error;
+  }
+};
+
+// Eliminar autorización (solo admins)
+export const deleteAuthorization = async (id) => {
+  try {
+    const response = await authenticatedFetch(`${API_BASE_URL}/admin/delete-authorization/${id}`, {
+      method: 'DELETE',
+    });
+    return await handleResponse(response);
+  } catch (error) {
+    console.error('Error en deleteAuthorization:', error);
+    throw error;
+  }
+};
+
 // Descargar documento desde S3 (requiere autenticación)
 export const downloadDocument = async (documentId) => {
   try {

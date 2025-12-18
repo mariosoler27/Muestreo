@@ -344,6 +344,94 @@ class UserAuthorization {
   }
 
   /**
+   * Verificar si un usuario es administrador
+   */
+  async isUserAdmin(username) {
+    try {
+      await this.ensureReady();
+      const sql = 'SELECT admin FROM user_authorizations WHERE username = ? AND activo = 1 AND admin = 1 LIMIT 1';
+      const result = await this.getQuery(sql, [username]);
+      return !!result;
+    } catch (error) {
+      console.error('Error verificando si usuario es admin:', error);
+      return false;
+    }
+  }
+
+  /**
+   * Eliminar autorización por ID (solo para administradores)
+   */
+  async deleteAuthorization(id) {
+    try {
+      await this.ensureReady();
+      const sql = 'DELETE FROM user_authorizations WHERE id = ?';
+      await this.runQuery(sql, [id]);
+      return true;
+    } catch (error) {
+      console.error('Error eliminando autorización:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Actualizar autorización por ID (solo para administradores)
+   */
+  async updateAuthorizationById(id, updates) {
+    try {
+      await this.ensureReady();
+      
+      // Construir query de actualización dinámicamente
+      const allowedFields = ['username', 'bucket', 'grupo_documentos', 'activo', 'admin'];
+      const updateFields = [];
+      const updateValues = [];
+
+      allowedFields.forEach(field => {
+        if (updates.hasOwnProperty(field)) {
+          updateFields.push(`${field} = ?`);
+          updateValues.push(updates[field]);
+        }
+      });
+
+      if (updateFields.length === 0) {
+        throw new Error('No se especificaron campos válidos para actualizar');
+      }
+
+      updateValues.push(id);
+      const updateSql = `UPDATE user_authorizations SET ${updateFields.join(', ')} WHERE id = ?`;
+      
+      await this.runQuery(updateSql, updateValues);
+      
+      // Devolver la autorización actualizada
+      return await this.getQuery('SELECT * FROM user_authorizations WHERE id = ?', [id]);
+    } catch (error) {
+      console.error('Error actualizando autorización por ID:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Crear autorización completa (para administradores)
+   */
+  async createAuthorizationAdmin(username, bucket, grupoDocumentos, admin = false) {
+    try {
+      await this.ensureReady();
+      
+      const insertSql = `
+        INSERT INTO user_authorizations (username, bucket, grupo_documentos, admin, activo)
+        VALUES (?, ?, ?, ?, 1)
+      `;
+      const result = await this.runQuery(insertSql, [username, bucket, grupoDocumentos, admin]);
+      
+      // Devolver la nueva autorización
+      const selectSql = 'SELECT * FROM user_authorizations WHERE id = ?';
+      return await this.getQuery(selectSql, [result.id]);
+    } catch (error) {
+      console.error('Error creando autorización completa:', error);
+      throw error;
+    }
+  }
+
+  /**
    * Inicializar datos de ejemplo (solo para desarrollo)
    */
   async initializeTestData() {

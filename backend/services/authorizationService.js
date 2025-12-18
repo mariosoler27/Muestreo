@@ -289,6 +289,62 @@ class AuthorizationService {
       return null;
     }
   }
+
+  /**
+   * Verificar si un usuario es administrador
+   */
+  async isUserAdmin(username) {
+    try {
+      return await this.userAuthModel.isUserAdmin(username);
+    } catch (error) {
+      console.error('Error verificando si usuario es admin:', error);
+      return false;
+    }
+  }
+
+  /**
+   * Métodos de administración (solo para admins)
+   */
+  
+  async deleteAuthorization(id) {
+    try {
+      await this.userAuthModel.deleteAuthorization(id);
+      return { success: true };
+    } catch (error) {
+      console.error('Error eliminando autorización:', error);
+      return { success: false, message: error.message };
+    }
+  }
+
+  async updateAuthorizationById(id, updates) {
+    try {
+      const validGroups = ['Cartas', 'Facturas', 'Contratos'];
+      if (updates.grupo_documentos && !updates.grupo_documentos.includes('Recepcion/Muestreo/')) {
+        throw new Error(`Grupo de documentos debe contener una ruta válida como Recepcion/Muestreo/Cartas`);
+      }
+
+      const result = await this.userAuthModel.updateAuthorizationById(id, updates);
+      return { success: true, authorization: result };
+    } catch (error) {
+      console.error('Error actualizando autorización:', error);
+      return { success: false, message: error.message };
+    }
+  }
+
+  async createAuthorizationAdmin(username, bucket, grupoDocumentos, admin = false) {
+    try {
+      const validGroups = ['Cartas', 'Facturas', 'Contratos'];
+      if (!grupoDocumentos.includes('Recepcion/Muestreo/')) {
+        throw new Error(`Grupo de documentos debe contener una ruta válida como Recepcion/Muestreo/Cartas`);
+      }
+
+      const result = await this.userAuthModel.createAuthorizationAdmin(username, bucket, grupoDocumentos, admin);
+      return { success: true, authorization: result };
+    } catch (error) {
+      console.error('Error creando autorización:', error);
+      return { success: false, message: error.message };
+    }
+  }
 }
 
 module.exports = AuthorizationService;

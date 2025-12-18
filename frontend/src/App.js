@@ -5,7 +5,8 @@ import FileDetails from './components/FileDetails';
 import FolderExplorer from './components/FolderExplorer';
 import BucketSelector from './components/BucketSelector';
 import Login from './components/Login';
-import { getFilesByFolder, getFileInfo, processFile } from './services/api';
+import AdminPanel from './components/AdminPanel';
+import { getFilesByFolder, getFileInfo, processFile, checkIsAdmin } from './services/api';
 import { isAuthenticated, getUserInfo, logout, initAuth } from './services/auth';
 
 function App() {
@@ -21,6 +22,8 @@ function App() {
   const [bucketInfo, setBucketInfo] = useState(null);
   const [bucketLoading, setBucketLoading] = useState(false);
   const [folderRefreshKey, setFolderRefreshKey] = useState(0);
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [showAdminPanel, setShowAdminPanel] = useState(false);
 
   // Inicializar autenticación al cargar la aplicación
   useEffect(() => {
@@ -60,12 +63,24 @@ function App() {
     setFileDetails(null);
   };
 
-  // Cargar archivos (solo si está autenticado)
+  // Cargar archivos y verificar admin (solo si está autenticado)
   useEffect(() => {
     if (authenticated) {
       loadFiles();
+      checkAdminStatus();
     }
   }, [authenticated]);
+
+  // Verificar si el usuario es administrador
+  const checkAdminStatus = async () => {
+    try {
+      const response = await checkIsAdmin();
+      setIsAdmin(response.isAdmin || false);
+    } catch (error) {
+      console.error('Error verificando permisos de admin:', error);
+      setIsAdmin(false);
+    }
+  };
 
   const loadFiles = async (folderPath = null) => {
     if (!folderPath) {
@@ -196,6 +211,15 @@ function App() {
         {user && (
           <div className="user-info">
             <span>Bienvenido, {user.name || user.username}</span>
+            {isAdmin && (
+              <button 
+                onClick={() => setShowAdminPanel(true)} 
+                className="admin-btn"
+                title="Panel de Administración"
+              >
+                ⚙️ Admin
+              </button>
+            )}
             <button onClick={handleLogout} className="logout-btn">
               Cerrar Sesión
             </button>
@@ -247,6 +271,11 @@ function App() {
           </div>
         </div>
       </main>
+
+      {/* Panel de administración (solo visible para administradores) */}
+      {showAdminPanel && isAdmin && (
+        <AdminPanel onClose={() => setShowAdminPanel(false)} />
+      )}
     </div>
   );
 }

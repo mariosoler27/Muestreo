@@ -215,6 +215,60 @@ const fullAuthMiddleware = (req, res, next) => {
 };
 
 /**
+ * Middleware para verificar que el usuario sea administrador
+ */
+const adminAuthorizationMiddleware = async (req, res, next) => {
+  try {
+    // Verificar que el usuario esté autenticado primero
+    if (!req.user || !req.user.username) {
+      return res.status(401).json({
+        error: 'No autenticado',
+        message: 'Se requiere autenticación para acceder a funciones de administración'
+      });
+    }
+
+    const username = req.user.username;
+    
+    // Verificar si el usuario es administrador
+    const isAdmin = await authorizationService.isUserAdmin(username);
+    
+    if (!isAdmin) {
+      console.log(`Usuario ${username} intentó acceder a funciones de administración sin permisos`);
+      return res.status(403).json({
+        error: 'Sin permisos de administración',
+        message: 'El usuario no tiene permisos de administración'
+      });
+    }
+
+    console.log(`Acceso de administrador verificado para ${username}`);
+    next();
+  } catch (error) {
+    console.error('Error en middleware de autorización de administrador:', error);
+    return res.status(500).json({
+      error: 'Error de autorización',
+      message: 'Error interno verificando permisos de administración'
+    });
+  }
+};
+
+/**
+ * Middleware combinado: autenticación + autorización + admin
+ */
+const fullAdminMiddleware = (req, res, next) => {
+  // Primero aplicar el middleware de autenticación
+  const { authMiddleware } = require('./simpleAuth');
+  
+  authMiddleware(req, res, (authError) => {
+    if (authError) {
+      return next(authError);
+    }
+    
+    // Luego aplicar el middleware de admin
+    adminAuthorizationMiddleware(req, res, next);
+  });
+};
+
+/**
  * Obtener información de autorización para uso en rutas
  */
 const getAuthorizationInfo = async (username) => {
@@ -232,6 +286,8 @@ module.exports = {
   documentGroupAuthorizationMiddleware,
   fileAuthorizationMiddleware,
   fullAuthMiddleware,
+  adminAuthorizationMiddleware,
+  fullAdminMiddleware,
   getAuthorizationInfo,
   authorizationService // Exportar el servicio para uso directo si es necesario
 };
