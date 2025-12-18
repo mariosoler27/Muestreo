@@ -1,0 +1,17 @@
+/* 
+ * Archivo principal de estilos
+ * Importa todos los estilos de manera organizada
+ */
+
+/* Variables CSS - Siempre primero */
+@import './global/variables.css';
+
+/* Estilos globales y base */
+@import './global/base.css';
+
+/* Estilos específicos de componentes */
+@import './components/Login.css';
+@import './components/BucketSelector.css';
+@import './components/FolderExplorer.css';
+@import './components/FileExplorer.css';
+@import './components/FileDetails.css';

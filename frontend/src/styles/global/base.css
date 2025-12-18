@@ -1,0 +1,214 @@
+/* Reset y estilos globales básicos */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: var(--font-family);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background-color: var(--bg-primary);
+  color: var(--gray-800);
+  line-height: 1.5;
+}
+
+.App {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Header principal */
+.App-header {
+  background: var(--primary-gradient);
+  color: var(--white);
+  padding: var(--spacing-xl) 0;
+  text-align: center;
+  box-shadow: var(--shadow);
+}
+
+.App-header h1 {
+  font-size: var(--font-size-3xl);
+  margin-bottom: var(--spacing-sm);
+  font-weight: var(--font-weight-semibold);
+}
+
+.App-header p {
+  font-size: var(--font-size-lg);
+  opacity: 0.9;
+}
+
+.user-info {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-lg);
+  margin-top: var(--spacing-md);
+  font-size: var(--font-size-base);
+}
+
+.logout-btn {
+  background: rgba(255, 255, 255, 0.2);
+  color: var(--white);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  padding: var(--spacing-sm) var(--spacing-md);
+  border-radius: var(--border-radius-sm);
+  cursor: pointer;
+  font-size: var(--font-size-sm);
+  transition: background-color var(--transition-normal);
+}
+
+.logout-btn:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+/* Contenido principal */
+.App-main {
+  flex: 1;
+  padding: var(--spacing-xl);
+}
+
+.container {
+  max-width: var(--container-max-width);
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 300px 1fr 1fr;
+  gap: var(--spacing-xl);
+  height: calc(100vh - var(--header-height));
+}
+
+/* Paneles base */
+.folder-panel, 
+.files-panel, 
+.details-panel {
+  background: var(--bg-card);
+  border-radius: var(--border-radius);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.panel-placeholder {
+  padding: var(--spacing-xl);
+  text-align: center;
+  color: var(--gray-500);
+}
+
+.panel-placeholder h3 {
+  margin-bottom: var(--spacing-md);
+  color: var(--gray-600);
+}
+
+/* Header de exploradores */
+.explorer-header {
+  background: var(--bg-header);
+  padding: var(--spacing-lg) var(--spacing-xl);
+  border-bottom: 1px solid var(--border-color);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.explorer-header h2 {
+  color: var(--gray-600);
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-semibold);
+  margin: 0;
+}
+
+/* Estados de loading y sin datos */
+.loading, 
+.no-files, 
+.no-folders, 
+.no-selection {
+  text-align: center;
+  padding: var(--spacing-4xl) var(--spacing-xl);
+  color: var(--gray-500);
+}
+
+.no-selection h3 {
+  margin-bottom: var(--spacing-md);
+  color: var(--gray-600);
+  font-weight: var(--font-weight-medium);
+}
+
+/* Mensajes de error */
+.error-message {
+  background: #fff3cd;
+  border: 1px solid #ffeaa7;
+  color: #856404;
+  padding: var(--spacing-lg);
+  margin: var(--spacing-xl);
+  border-radius: var(--border-radius-sm);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.error-message button {
+  background: #856404;
+  color: var(--white);
+  border: none;
+  padding: var(--spacing-sm) var(--spacing-md);
+  border-radius: var(--border-radius-sm);
+  cursor: pointer;
+  transition: background-color var(--transition-normal);
+}
+
+.error-message button:hover {
+  opacity: 0.8;
+}
+
+/* Responsive design */
+@media (max-width: 992px) {
+  .container {
+    grid-template-columns: 1fr;
+    height: auto;
+    gap: var(--spacing-lg);
+  }
+  
+  .folder-panel, 
+  .files-panel, 
+  .details-panel {
+    height: 50vh;
+    min-height: var(--panel-min-height);
+  }
+}
+
+@media (max-width: 768px) {
+  .App-header h1 {
+    font-size: var(--font-size-2xl);
+  }
+  
+  .App-header p {
+    font-size: var(--font-size-md);
+  }
+  
+  .container {
+    margin: 0 var(--spacing-md);
+    gap: var(--spacing-lg);
+  }
+  
+  .explorer-header {
+    padding: var(--spacing-md) var(--spacing-lg);
+  }
+  
+  .user-info {
+    flex-direction: column;
+    gap: var(--spacing-sm);
+  }
+}
+
+@media (max-width: 480px) {
+  .App-main {
+    padding: var(--spacing-md);
+  }
+  
+  .container {
+    gap: var(--spacing-md);
+  }
+}

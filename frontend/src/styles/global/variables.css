@@ -1,0 +1,108 @@
+/* Variables CSS para el diseño */
+:root {
+  /* Colores principales */
+  --primary-green: #00A651;
+  --primary-blue: #0066CC;
+  --primary-gradient: linear-gradient(135deg, var(--primary-green) 0%, var(--primary-blue) 100%);
+  
+  /* Colores de estado */
+  --success: #28a745;
+  --success-hover: #218838;
+  --info: #17a2b8;
+  --info-hover: #138496;
+  --warning: #ffc107;
+  --danger: #dc3545;
+  --danger-hover: #c82333;
+  
+  /* Colores neutros */
+  --white: #ffffff;
+  --gray-50: #f8f9fa;
+  --gray-100: #e9ecef;
+  --gray-200: #dee2e6;
+  --gray-300: #ced4da;
+  --gray-400: #a0aec0;
+  --gray-500: #6c757d;
+  --gray-600: #495057;
+  --gray-700: #343a40;
+  --gray-800: #212529;
+  --gray-900: #0d1117;
+  
+  /* Colores de fondo */
+  --bg-primary: #f5f5f5;
+  --bg-card: var(--white);
+  --bg-header: var(--gray-50);
+  --bg-selected: #e3f2fd;
+  --bg-hover: #f8f9fa;
+  
+  /* Bordes */
+  --border-color: var(--gray-100);
+  --border-radius: 8px;
+  --border-radius-sm: 4px;
+  --border-radius-lg: 12px;
+  
+  /* Sombras */
+  --shadow-sm: 0 1px 2px rgba(0,0,0,0.05);
+  --shadow: 0 2px 8px rgba(0,0,0,0.1);
+  --shadow-lg: 0 10px 40px rgba(0,0,0,0.1);
+  --shadow-focus: 0 0 0 3px rgba(0, 122, 204, 0.1);
+  
+  /* Tipografía */
+  --font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+  --font-size-xs: 0.75rem;
+  --font-size-sm: 0.85rem;
+  --font-size-base: 0.9rem;
+  --font-size-md: 1rem;
+  --font-size-lg: 1.1rem;
+  --font-size-xl: 1.3rem;
+  --font-size-2xl: 2rem;
+  --font-size-3xl: 2.5rem;
+  --font-weight-normal: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  
+  /* Espaciado */
+  --spacing-xs: 4px;
+  --spacing-sm: 8px;
+  --spacing-md: 12px;
+  --spacing-lg: 16px;
+  --spacing-xl: 20px;
+  --spacing-2xl: 24px;
+  --spacing-3xl: 32px;
+  --spacing-4xl: 40px;
+  
+  /* Layout */
+  --container-max-width: 1600px;
+  --header-height: 140px;
+  --panel-min-height: 300px;
+  
+  /* Transiciones */
+  --transition-fast: 0.15s ease;
+  --transition-normal: 0.2s ease;
+  --transition-slow: 0.3s ease;
+  
+  /* Z-index */
+  --z-dropdown: 1000;
+  --z-modal: 1050;
+  --z-tooltip: 1060;
+}
+
+/* Colores específicos para badges */
+:root {
+  --badge-cartas-bg: #e3f2fd;
+  --badge-cartas-color: #1565c0;
+  --badge-contratos-bg: #f3e5f5;
+  --badge-contratos-color: #7b1fa2;
+  --badge-facturas-bg: #e8f5e8;
+  --badge-facturas-color: #2e7d32;
+  --badge-default-bg: #fafafa;
+  --badge-default-color: #757575;
+}
+
+/* Media queries breakpoints */
+:root {
+  --breakpoint-sm: 576px;
+  --breakpoint-md: 768px;
+  --breakpoint-lg: 992px;
+  --breakpoint-xl: 1200px;
+}

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { getAvailableBuckets, setSelectedBucket } from '../services/api';
-import './BucketSelector.css';
+// Los estilos se importan desde el index.css principal
 
 const BucketSelector = ({ onBucketChange, onLoading }) => {
   const [buckets, setBuckets] = useState([]);

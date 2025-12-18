@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import './App.css';
+import './styles/index.css';
 import FileExplorer from './components/FileExplorer';
 import FileDetails from './components/FileDetails';
 import FolderExplorer from './components/FolderExplorer';

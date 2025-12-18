@@ -1,0 +1,308 @@
+/* Estilos específicos del componente FileDetails */
+.file-details {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.details-header {
+  background: var(--bg-header);
+  padding: var(--spacing-lg) var(--spacing-xl);
+  border-bottom: 1px solid var(--border-color);
+  flex-shrink: 0;
+}
+
+.details-header h3 {
+  color: var(--gray-600);
+  font-size: var(--font-size-xl);
+  margin-bottom: var(--spacing-md);
+  font-weight: var(--font-weight-semibold);
+}
+
+.file-info-summary h4 {
+  color: var(--gray-800);
+  margin-bottom: var(--spacing-sm);
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-medium);
+}
+
+.type-info {
+  display: flex;
+  gap: var(--spacing-md);
+  align-items: center;
+  margin-bottom: var(--spacing-sm);
+  flex-wrap: wrap;
+}
+
+.tipologia-badge {
+  background: var(--primary-blue);
+  color: var(--white);
+  padding: var(--spacing-xs) var(--spacing-md);
+  border-radius: 15px;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  display: inline-block;
+  max-width: 200px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.sistema-text {
+  color: var(--gray-500);
+  font-size: var(--font-size-base);
+}
+
+.description {
+  color: var(--gray-600);
+  font-size: var(--font-size-base);
+  margin-bottom: var(--spacing-sm);
+}
+
+.csv-data-section, 
+.processing-section {
+  padding: var(--spacing-xl);
+  flex-shrink: 0;
+}
+
+.csv-data-section {
+  border-bottom: 1px solid var(--border-color);
+  max-height: 40%;
+  overflow: auto;
+}
+
+.csv-data-section h4, 
+.processing-section h4 {
+  color: var(--gray-600);
+  margin-bottom: var(--spacing-md);
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-medium);
+}
+
+.csv-table {
+  overflow-x: auto;
+}
+
+.csv-table table {
+  width: 100%;
+  border-collapse: collapse;
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius-sm);
+  overflow: hidden;
+}
+
+.csv-table th {
+  background: var(--gray-100);
+  padding: var(--spacing-md);
+  text-align: left;
+  font-weight: var(--font-weight-semibold);
+  color: var(--gray-600);
+  border-bottom: 1px solid var(--border-color);
+  font-size: var(--font-size-base);
+}
+
+.csv-table td {
+  padding: var(--spacing-md);
+  border-bottom: 1px solid var(--border-color);
+  color: var(--gray-800);
+  font-size: var(--font-size-base);
+}
+
+.csv-table tr:nth-child(even) {
+  background: var(--bg-hover);
+}
+
+.csv-table tr:hover {
+  background: var(--bg-selected);
+}
+
+/* Processing Form */
+.processing-section {
+  flex: 1;
+  overflow-y: auto;
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--spacing-lg);
+  margin-bottom: var(--spacing-lg);
+}
+
+.form-row:last-child {
+  grid-template-columns: 1fr;
+}
+
+.form-field {
+  display: flex;
+  flex-direction: column;
+}
+
+.form-field label {
+  font-weight: var(--font-weight-medium);
+  margin-bottom: var(--spacing-xs);
+  color: var(--gray-600);
+  font-size: var(--font-size-base);
+}
+
+.form-field input, 
+.form-field select {
+  padding: var(--spacing-sm) var(--spacing-md);
+  border: 1px solid var(--gray-300);
+  border-radius: var(--border-radius-sm);
+  font-size: var(--font-size-base);
+  transition: border-color var(--transition-fast);
+}
+
+.form-field input:focus, 
+.form-field select:focus {
+  outline: none;
+  border-color: #80bdff;
+  box-shadow: var(--shadow-focus);
+}
+
+.form-field input.error, 
+.form-field select.error {
+  border-color: var(--danger);
+}
+
+.readonly-field {
+  background-color: var(--bg-header) !important;
+  color: var(--gray-500) !important;
+  cursor: not-allowed !important;
+  border-color: var(--border-color) !important;
+}
+
+.readonly-field:focus {
+  background-color: var(--bg-header) !important;
+  border-color: var(--border-color) !important;
+  box-shadow: none !important;
+}
+
+/* Input con botón */
+.input-with-button {
+  display: flex;
+  gap: var(--spacing-sm);
+  align-items: center;
+}
+
+.input-with-button input {
+  flex: 1;
+}
+
+.download-btn {
+  background: var(--info);
+  color: var(--white);
+  border: none;
+  padding: var(--spacing-sm) var(--spacing-md);
+  border-radius: var(--border-radius-sm);
+  cursor: pointer;
+  font-size: 1.2rem;
+  line-height: 1;
+  min-width: 40px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color var(--transition-normal);
+  text-decoration: none;
+}
+
+.download-btn:hover:not(:disabled) {
+  background: var(--info-hover);
+}
+
+.download-btn:disabled {
+  background: var(--gray-500);
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.download-btn-small {
+  background: var(--info);
+  color: var(--white);
+  border: none;
+  padding: var(--spacing-sm);
+  border-radius: var(--border-radius-sm);
+  cursor: pointer;
+  font-size: var(--font-size-md);
+  line-height: 1;
+  min-width: 32px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color var(--transition-normal);
+  text-decoration: none;
+}
+
+.download-btn-small:hover:not(:disabled) {
+  background: var(--info-hover);
+}
+
+.download-btn-small:disabled {
+  background: var(--gray-500);
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.field-error {
+  color: var(--danger);
+  font-size: var(--font-size-sm);
+  margin-top: var(--spacing-xs);
+}
+
+.process-actions {
+  margin-top: var(--spacing-xl);
+  text-align: center;
+}
+
+.process-btn {
+  background: var(--success);
+  color: var(--white);
+  border: none;
+  padding: var(--spacing-md) var(--spacing-2xl);
+  border-radius: var(--border-radius-sm);
+  font-size: var(--font-size-md);
+  font-weight: var(--font-weight-medium);
+  cursor: pointer;
+  transition: background-color var(--transition-normal);
+}
+
+.process-btn:hover:not(:disabled) {
+  background: var(--success-hover);
+}
+
+.process-btn:disabled {
+  background: var(--gray-500);
+  cursor: not-allowed;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .csv-data-section, 
+  .processing-section {
+    padding: var(--spacing-lg);
+  }
+  
+  .form-row {
+    grid-template-columns: 1fr;
+    gap: var(--spacing-md);
+  }
+  
+  .type-info {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--spacing-sm);
+  }
+  
+  .csv-table {
+    font-size: var(--font-size-sm);
+  }
+  
+  .csv-table th, 
+  .csv-table td {
+    padding: var(--spacing-sm);
+  }
+}
