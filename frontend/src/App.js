@@ -205,27 +205,28 @@ function App() {
 
   return (
     <div className="App">
-      <header className="App-header">
-        <h1>Procesador de Ficheros S3</h1>
-        <p>Gestión y procesamiento de archivos CSV desde Amazon S3</p>
-        {user && (
-          <div className="user-info">
-            <span>Bienvenido, {user.name || user.username}</span>
-            {isAdmin && (
-              <button 
-                onClick={() => setShowAdminPanel(true)} 
-                className="admin-btn"
-                title="Panel de Administración"
-              >
-                ⚙️ Admin
+      <div className="newCo">
+        <header className="App-header">
+          <h1>Procesador de Ficheros S3</h1>
+          <p>Gestión y procesamiento de archivos CSV desde Amazon S3</p>
+          {user && (
+            <div className="user-info">
+              <span>Bienvenido, {user.name || user.username}</span>
+              {isAdmin && (
+                <button 
+                  onClick={() => setShowAdminPanel(true)} 
+                  className="admin-btn"
+                  title="Panel de Administración"
+                >
+                  ⚙️ Admin
+                </button>
+              )}
+              <button onClick={handleLogout} className="logout-btn">
+                Cerrar Sesión
               </button>
-            )}
-            <button onClick={handleLogout} className="logout-btn">
-              Cerrar Sesión
-            </button>
-          </div>
-        )}
-      </header>
+            </div>
+          )}
+        </header>
       
       {error && (
         <div className="error-message">
@@ -272,10 +273,11 @@ function App() {
         </div>
       </main>
 
-      {/* Panel de administración (solo visible para administradores) */}
-      {showAdminPanel && isAdmin && (
-        <AdminPanel onClose={() => setShowAdminPanel(false)} />
-      )}
+        {/* Panel de administración (solo visible para administradores) */}
+        {showAdminPanel && isAdmin && (
+          <AdminPanel onClose={() => setShowAdminPanel(false)} />
+        )}
+      </div>
     </div>
   );
 }

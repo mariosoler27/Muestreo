@@ -1,108 +1,173 @@
-/* Variables CSS para el diseño */
+/* Variables CSS globales - Sistema de Diseño Naturgy */
+
+/* Nota: Las fuentes FSEmericWeb se cargarán posteriormente */
+
 :root {
-  /* Colores principales */
-  --primary-green: #00A651;
-  --primary-blue: #0066CC;
-  --primary-gradient: linear-gradient(135deg, var(--primary-green) 0%, var(--primary-blue) 100%);
-  
-  /* Colores de estado */
-  --success: #28a745;
-  --success-hover: #218838;
-  --info: #17a2b8;
-  --info-hover: #138496;
-  --warning: #ffc107;
-  --danger: #dc3545;
-  --danger-hover: #c82333;
-  
-  /* Colores neutros */
-  --white: #ffffff;
-  --gray-50: #f8f9fa;
-  --gray-100: #e9ecef;
-  --gray-200: #dee2e6;
-  --gray-300: #ced4da;
-  --gray-400: #a0aec0;
-  --gray-500: #6c757d;
-  --gray-600: #495057;
-  --gray-700: #343a40;
-  --gray-800: #212529;
-  --gray-900: #0d1117;
-  
-  /* Colores de fondo */
-  --bg-primary: #f5f5f5;
-  --bg-card: var(--white);
-  --bg-header: var(--gray-50);
-  --bg-selected: #e3f2fd;
-  --bg-hover: #f8f9fa;
-  
-  /* Bordes */
-  --border-color: var(--gray-100);
-  --border-radius: 8px;
-  --border-radius-sm: 4px;
-  --border-radius-lg: 12px;
-  
+  /* Colores Naturgy */
+  --primary: #004571;
+  --secondary: #e57200;
+  --background: #f9fafb;
+
+  /* Estados */
+  --ok: #90ae6e;
+  --warning: #f2b880;
+  --error: #ff1924;
+  --disabled: #99b5c6;
+
+  /* Matices */
+  --matiz1: #fafafa;
+  --matiz2: #f2f6f8;
+  --matiz3: #edf1f4;
+  --matiz4: #e5ecf0;
+  --matiz5: #ccdae3;
+  --matiz6: #0045710d;
+
+  /* Complementarios */
+  --complement1: #4e7e17;
+  --complement2: #ffbb38;
+  --complement3: #df1642;
+  --complement4: #f4f7c8;
+  --complement5: #fdf1e6;
+  --complement6: rgba(5, 192, 144, 0.05);
+
+  /* Certificación */
+  --aenor: #a2ad00;
+
+  /* Botones - Estados hover */
+  --secondary-hover: #ff7f00;
+  --secondary-outline-hover: var(--complement5);
+  --primary-hover: var(--primary);
+  --primary-outline-hover: var(--matiz2);
+
   /* Sombras */
-  --shadow-sm: 0 1px 2px rgba(0,0,0,0.05);
-  --shadow: 0 2px 8px rgba(0,0,0,0.1);
-  --shadow-lg: 0 10px 40px rgba(0,0,0,0.1);
-  --shadow-focus: 0 0 0 3px rgba(0, 122, 204, 0.1);
-  
+  --shadow-passive: 0 3px 5px rgba(12, 17, 34, 0.1);
+  --shadow-active: 0 3px 20px rgba(12, 17, 34, 0.1);
+  --shadow-inner: inset 0px 2px 2px rgba(0, 0, 0, 0.1);
+
+  /* Gradientes */
+  --gradient: radial-gradient(100% 100% at 100% 100%, #f4fbff 0%, #fcfdff 100%);
+  --gradient-orange: radial-gradient(100% 100% at 100% 100%, #fff8ea 0%, #fffdfb 100%);
+  --primary-gradient: linear-gradient(135deg, var(--primary) 0%, #003456 100%);
+
+  /* Breakpoints */
+  --bp-mobile-xs: 435px;
+  --bp-mobile: 600px;
+  --bp-tablet: 767px;
+  --bp-desktop: 1024px;
+  --bp-desktop-xl: 1200px;
+  --bp-desktop-xxl: 1250px;
+  --bp-desktop-xxxl: 1650px;
+
+  /* Espaciado base */
+  --base-desktop: 10px;
+  --base-mobile: 8px;
+
   /* Tipografía */
-  --font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
-  --font-size-xs: 0.75rem;
-  --font-size-sm: 0.85rem;
-  --font-size-base: 0.9rem;
-  --font-size-md: 1rem;
-  --font-size-lg: 1.1rem;
-  --font-size-xl: 1.3rem;
-  --font-size-2xl: 2rem;
-  --font-size-3xl: 2.5rem;
+  --font-family: "FSEmericWeb", -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+  --font-family-fallback: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+
+  /* Tamaños de fuente */
+  --font-size-h1: 36px;
+  --font-size-h2: 36px;
+  --font-size-h3: 24px;
+  --font-size-h4: 20px;
+  --font-size-h5: 18px;
+  --font-size-h6: 14px;
+  --font-size-base: 16px;
+  --font-size-small: 11px;
+
+  /* Líneas de altura */
+  --line-height-h1: 40px;
+  --line-height-h2: 40px;
+  --line-height-h3: 26px;
+  --line-height-h4: 22px;
+  --line-height-base: 1.5;
+
+  /* Pesos de fuente */
+  --font-weight-thin: 200;
   --font-weight-normal: 400;
   --font-weight-medium: 500;
-  --font-weight-semibold: 600;
-  
-  /* Espaciado */
-  --spacing-xs: 4px;
-  --spacing-sm: 8px;
-  --spacing-md: 12px;
-  --spacing-lg: 16px;
-  --spacing-xl: 20px;
-  --spacing-2xl: 24px;
-  --spacing-3xl: 32px;
-  --spacing-4xl: 40px;
-  
+
+  /* Espaciado (usando base) */
+  --spacing-xs: calc(var(--base-desktop) * 0.5);  /* 5px */
+  --spacing-sm: var(--base-desktop);              /* 10px */
+  --spacing-md: calc(var(--base-desktop) * 2);    /* 20px */
+  --spacing-lg: calc(var(--base-desktop) * 3);    /* 30px */
+  --spacing-xl: calc(var(--base-desktop) * 4);    /* 40px */
+  --spacing-2xl: calc(var(--base-desktop) * 5);   /* 50px */
+  --spacing-3xl: calc(var(--base-desktop) * 6);   /* 60px */
+  --spacing-4xl: calc(var(--base-desktop) * 8);   /* 80px */
+
+  /* Bordes */
+  --border-radius: 4px;
+  --border-radius-sm: 2px;
+  --border-radius-lg: 8px;
+  --border-radius-xl: 12px;
+  --border-color: var(--matiz4);
+
   /* Layout */
-  --container-max-width: 1600px;
-  --header-height: 140px;
-  --panel-min-height: 300px;
-  
+  --container-max-width: 1026px;
+  --container-max-width-2col: 1098px;
+  --header-height: 80px;
+
   /* Transiciones */
-  --transition-fast: 0.15s ease;
-  --transition-normal: 0.2s ease;
-  --transition-slow: 0.3s ease;
-  
+  --transition-fast: 150ms ease;
+  --transition-normal: 300ms ease;
+  --transition-slow: 500ms ease;
+
   /* Z-index */
   --z-dropdown: 1000;
+  --z-sticky: 1020;
+  --z-fixed: 1030;
+  --z-modal-backdrop: 1040;
   --z-modal: 1050;
-  --z-tooltip: 1060;
+  --z-popover: 1060;
+  --z-tooltip: 1070;
+
+  /* Aliases para compatibilidad con componentes existentes */
+  --success: var(--ok);
+  --success-hover: #7a9860;
+  --info: var(--primary);
+  --info-hover: var(--primary-hover);
+  --danger: var(--error);
+  --white: #ffffff;
+  --primary-blue: var(--primary);
+
+  /* Colores de fondo */
+  --bg-primary: var(--background);
+  --bg-secondary: var(--matiz1);
+  --bg-card: var(--white);
+  --bg-header: var(--matiz2);
+  --bg-hover: var(--matiz3);
+  --bg-selected: var(--matiz2);
+
+  /* Grises usando matices */
+  --gray-100: var(--matiz1);
+  --gray-200: var(--matiz2);
+  --gray-300: var(--matiz3);
+  --gray-400: var(--matiz4);
+  --gray-500: var(--matiz5);
+  --gray-600: #718096;
+  --gray-700: var(--primary);
+  --gray-800: var(--primary);
+
+  /* Sombras con nombres estándar */
+  --shadow: var(--shadow-passive);
+  --shadow-md: var(--shadow-active);
+  --shadow-lg: var(--shadow-active);
+  --shadow-focus: 0 0 0 3px rgba(0, 69, 113, 0.1);
 }
 
-/* Colores específicos para badges */
-:root {
-  --badge-cartas-bg: #e3f2fd;
-  --badge-cartas-color: #1565c0;
-  --badge-contratos-bg: #f3e5f5;
-  --badge-contratos-color: #7b1fa2;
-  --badge-facturas-bg: #e8f5e8;
-  --badge-facturas-color: #2e7d32;
-  --badge-default-bg: #fafafa;
-  --badge-default-color: #757575;
-}
-
-/* Media queries breakpoints */
-:root {
-  --breakpoint-sm: 576px;
-  --breakpoint-md: 768px;
-  --breakpoint-lg: 992px;
-  --breakpoint-xl: 1200px;
+/* Media queries para espaciado responsive */
+@media (max-width: 600px) {
+  :root {
+    --spacing-xs: calc(var(--base-mobile) * 0.5);  /* 4px */
+    --spacing-sm: var(--base-mobile);              /* 8px */
+    --spacing-md: calc(var(--base-mobile) * 2);    /* 16px */
+    --spacing-lg: calc(var(--base-mobile) * 3);    /* 24px */
+    --spacing-xl: calc(var(--base-mobile) * 4);    /* 32px */
+    --spacing-2xl: calc(var(--base-mobile) * 5);   /* 40px */
+    --spacing-3xl: calc(var(--base-mobile) * 6);   /* 48px */
+    --spacing-4xl: calc(var(--base-mobile) * 8);   /* 64px */
+  }
 }

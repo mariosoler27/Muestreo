@@ -1,0 +1,150 @@
+@import "vars";
+@import "scaffolding";
+@import "fonts";
+@import "normalize";
+@import "icons";
+@import "helpers";
+/*@import "debug";*/
+
+@import "components/common/modal";
+@import "components/common/popover";
+@import "components/common/datepicker";
+@import "components/common/tooltip";
+@import "components/common/cookies";
+@import "components/common/loading";
+@import "components/common/autocomplete";
+@import "components/common/toastify";
+
+.newCo,
+.MuiModal-root {
+  /* common */
+  @import "type";
+
+  /* Components */
+
+  /* forms */
+  @import "components/common/button";
+  @import "components/common/button-icon";
+  @import "components/common/checkbox";
+  @import "components/common/input-text";
+  @import "components/common/input-radio";
+  @import "components/common/label";
+  @import "components/common/multiselect";
+  /**/
+
+  @import "components/common/accordion";
+  @import "components/common/address-detail";
+  @import "components/common/advantages-card-main";
+  @import "components/common/advantages-card-secondary";
+  @import "components/common/agent-bar";
+  @import "components/common/agent-bar-data";
+  @import "components/common/alert-top";
+  @import "components/common/alert-banner";
+  @import "components/common/block-tooltip-info";
+  @import "components/common/box-actions";
+  @import "components/common/button-card";
+  @import "components/common/card-payment";
+  @import "components/common/chart-line";
+  @import "components/common/chip";
+  @import "components/common/circle-icon";
+  @import "components/common/client-control";
+  @import "components/common/completed-management";
+  @import "components/common/consumptions-home-card";
+  @import "components/common/cross-filter";
+  @import "components/common/delete-subdivision-modal";
+  @import "components/common/divider";
+  @import "components/common/dropzone";
+  @import "components/common/edit-buttons";
+  @import "components/common/finish-process";
+  @import "components/common/footer";
+  @import "components/common/home-filter";
+  @import "components/common/icon-group";
+  @import "components/common/invoice-card";
+  @import "components/common/invoices-home-card";
+  @import "components/common/invoice-modal";
+  @import "components/common/list-items";
+  @import "components/common/list-information";
+  @import "components/common/list-simple";
+  @import "components/common/management-home-card";
+  @import "components/common/menu-actions";
+  @import "components/common/menu-actions-big";
+  @import "components/common/menu-button-responsive";
+  @import "components/common/menu-list";
+  @import "components/common/menu-managements";
+  @import "components/common/messages";
+  @import "components/common/nav-bar";
+  @import "components/common/online-activation";
+  @import "components/common/payment-modal";
+  @import "components/common/ordered-list";
+  @import "components/common/pagination";
+  @import "components/common/password-security";
+  @import "components/common/paper";
+  @import "components/common/plus-banner";
+  @import "components/common/preview-card";
+  @import "components/common/prices";
+  @import "components/common/product-filters";
+  @import "components/common/product-icon";
+  @import "components/common/product-selector";
+  @import "components/common/products-home-card";
+  @import "components/common/promotions";
+  @import "components/common/rechart";
+  @import "components/common/search-input";
+  @import "components/common/select-custom";
+  @import "components/common/send-duplicate-contract";
+  @import "components/common/split-payments";
+  @import "components/common/split-payments-modal";
+  @import "components/common/stepper";
+  @import "components/common/subdivisions";
+  @import "components/common/subrogation-act";
+  @import "components/common/switch-text";
+  @import "components/common/table-info";
+  @import "components/common/tracking-management";
+  @import "components/common/ul-links";
+  @import "components/common/popup-from-acm";
+  @import "components/common/welcome-modal";
+  @import "components/common/print-layout";
+  @import "components/common/claim-summary";
+  @import "components/pages/gas-reading";
+  @import "components/common/notifications-modal";
+  @import "components/common/badge.scss";
+  @import "components/common/site-selector";
+  @import "components/common/payment_date";
+  @import "components/common/alert-bar";
+  @import "components/common/client-manager";
+}
+
+.newCo {
+  /*Pages*/
+  @import "components/pages/advantages";
+  @import "components/pages/advise";
+  @import "components/pages/assistance";
+  @import "components/pages/cashback";
+  @import "components/pages/cashback-detail";
+  @import "components/pages/change-holder";
+  @import "components/pages/change-power";
+  @import "components/pages/change-product";
+  @import "components/pages/claims";
+  @import "components/pages/consumption";
+  @import "components/pages/correspondance";
+  @import "components/pages/favorites";
+  @import "components/pages/gestiones";
+  @import "components/pages/product-list";
+  @import "components/pages/product-detail";
+  @import "components/pages/home";
+  @import "components/pages/invoices-detail";
+  @import "components/pages/invoices-list";
+  @import "components/pages/login";
+  @import "components/pages/my-account";
+  @import "components/pages/naturgy-card";
+  @import "components/pages/new-management-card";
+  @import "components/pages/no-client";
+  @import "components/pages/recommended-power";
+  @import "components/pages/recommended-rate";
+  @import "components/pages/recovery-password";
+  @import "components/pages/registro";
+  @import "components/pages/search-addresses";
+  @import "components/pages/split-payment";
+  @import "components/pages/toll-information";
+  @import "components/pages/notifications";
+  @import "components/pages/bank-details";
+}

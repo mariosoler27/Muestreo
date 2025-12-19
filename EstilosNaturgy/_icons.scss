@@ -1,0 +1,1120 @@
+@font-face {
+  font-family: "naturgy-icons";
+  src: url("../assets/fonts/naturgy-icons.woff2?qi88sc") format("woff2"),
+    url("../assets/fonts/naturgy-icons.woff?qi88sc") format("woff");
+  font-weight: normal;
+  font-style: normal;
+  font-display: block;
+}
+
+[class^="n-icon-"],
+[class*=" n-icon-"] {
+  /* use !important to prevent issues with browser extensions that change fonts */
+  font-family: "naturgy-icons" !important;
+  speak: never;
+  font-style: normal;
+  font-weight: normal;
+  font-variant: normal;
+  text-transform: none;
+  line-height: 1;
+
+  /* Better Font Rendering =========== */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.n-icon-exencion:before {
+  content: "\ea6b";
+}
+.n-icon-docu-lista:before {
+  content: "\ea6c";
+}
+.n-icon-more-managements:before {
+  content: "\e900";
+}
+.n-icon-ok-con-aviso:before {
+  content: "\e901";
+}
+.n-icon-aenor-certificado:before {
+  content: "\e902";
+}
+.n-icon-select:before {
+  content: "\e903";
+}
+.n-icon-rrss-whatsapp:before {
+  content: "\e904";
+}
+.n-icon-pepe:before {
+  content: "\e905";
+}
+.n-icon-ordenar:before {
+  content: "\e906";
+}
+.n-icon-nuevo-contacto:before {
+  content: "\e907";
+}
+.n-icon-ocr:before {
+  content: "\e908";
+}
+.n-icon-chevron-down:before {
+  content: "\e909";
+}
+.n-icon-chevron-left:before {
+  content: "\e90a";
+}
+.n-icon-chevron-up:before {
+  content: "\e90b";
+}
+.n-icon-faceid:before {
+  content: "\e90c";
+}
+.n-icon-logout:before {
+  content: "\e90d";
+}
+.n-icon-enviar:before {
+  content: "\e90e";
+}
+.n-icon-ver-cards:before {
+  content: "\e90f";
+}
+.n-icon-ver-listado:before {
+  content: "\e910";
+}
+.n-icon-no-icon:before {
+  content: "\e911";
+}
+.n-icon-soporte-tecnico:before {
+  content: "\e912";
+}
+.n-icon-sostenible:before {
+  content: "\e913";
+}
+.n-icon-stop:before {
+  content: "\e914";
+}
+.n-icon-tabla:before {
+  content: "\e915";
+}
+.n-icon-tablet:before {
+  content: "\e916";
+}
+.n-icon-talks:before {
+  content: "\e917";
+}
+.n-icon-target:before {
+  content: "\e918";
+}
+.n-icon-tarifa-discriminacion-horaria:before {
+  content: "\e919";
+}
+.n-icon-tarjeta-apertura:before {
+  content: "\e91a";
+}
+.n-icon-telegram:before {
+  content: "\e91b";
+}
+.n-icon-teleoperador:before {
+  content: "\e91c";
+}
+.n-icon-termostato:before {
+  content: "\e91d";
+}
+.n-icon-tiempo:before {
+  content: "\e91e";
+}
+.n-icon-tijeras:before {
+  content: "\e91f";
+}
+.n-icon-titular-contrato:before {
+  content: "\e920";
+}
+.n-icon-transformacion-a-gas:before {
+  content: "\e921";
+}
+.n-icon-tranxfer:before {
+  content: "\e922";
+}
+.n-icon-triste1:before {
+  content: "\e923";
+}
+.n-icon-triste2:before {
+  content: "\e924";
+}
+.n-icon-validacion:before {
+  content: "\e925";
+}
+.n-icon-chevron-right:before {
+  content: "\e926";
+}
+.n-icon-vehiculo-electrico:before {
+  content: "\e927";
+}
+.n-icon-vehiculo-gas:before {
+  content: "\e928";
+}
+.n-icon-vehiculo-hibrido:before {
+  content: "\e929";
+}
+.n-icon-ver-documentacion:before {
+  content: "\e92a";
+}
+.n-icon-ver-documento:before {
+  content: "\e92b";
+}
+.n-icon-ver-facturas-consumos:before {
+  content: "\e92c";
+}
+.n-icon-ver-video:before {
+  content: "\e92d";
+}
+.n-icon-renunion:before {
+  content: "\e92e";
+}
+.n-icon-reparacion-urgente:before {
+  content: "\e92f";
+}
+.n-icon-residencial:before {
+  content: "\e930";
+}
+.n-icon-resultados:before {
+  content: "\e931";
+}
+.n-icon-revision-preventiva:before {
+  content: "\e932";
+}
+.n-icon-revision:before {
+  content: "\e933";
+}
+.n-icon-arroba:before {
+  content: "\e934";
+}
+.n-icon-rrss-facebook:before {
+  content: "\e935";
+}
+.n-icon-rrss-instagram:before {
+  content: "\e936";
+}
+.n-icon-rrss-linkedin:before {
+  content: "\e937";
+}
+.n-icon-rrss-twitter:before {
+  content: "\e938";
+}
+.n-icon-rrss-youtube:before {
+  content: "\e939";
+}
+.n-icon-rrss:before {
+  content: "\e93a";
+}
+.n-icon-seguridad:before {
+  content: "\e93b";
+}
+.n-icon-servicio-mantenimiento-hogar:before {
+  content: "\e93c";
+}
+.n-icon-servicio-proteccion-facturas:before {
+  content: "\e93d";
+}
+.n-icon-servicio:before {
+  content: "\e93e";
+}
+.n-icon-servicios:before {
+  content: "\e93f";
+}
+.n-icon-servigas:before {
+  content: "\e940";
+}
+.n-icon-servihouse:before {
+  content: "\e941";
+}
+.n-icon-serviluz:before {
+  content: "\e942";
+}
+.n-icon-simulador:before {
+  content: "\e943";
+}
+.n-icon-sol1:before {
+  content: "\e944";
+}
+.n-icon-sol2:before {
+  content: "\e945";
+}
+.n-icon-solar:before {
+  content: "\e946";
+}
+.n-icon-solicitar-cambio-titular:before {
+  content: "\e947";
+}
+.n-icon-plus:before {
+  content: "\e948";
+}
+.n-icon-portatil:before {
+  content: "\e949";
+}
+.n-icon-positivo:before {
+  content: "\e94a";
+}
+.n-icon-post-emergencia:before {
+  content: "\e94b";
+}
+.n-icon-precalentar:before {
+  content: "\e94c";
+}
+.n-icon-precio-oferta1:before {
+  content: "\e94d";
+}
+.n-icon-precio-oferta2:before {
+  content: "\e94e";
+}
+.n-icon-premios:before {
+  content: "\e94f";
+}
+.n-icon-procedimiento-especifico:before {
+  content: "\e950";
+}
+.n-icon-procesador-textos:before {
+  content: "\e951";
+}
+.n-icon-procesar-envio:before {
+  content: "\e952";
+}
+.n-icon-programar:before {
+  content: "\e953";
+}
+.n-icon-pyme:before {
+  content: "\e954";
+}
+.n-icon-rayo1:before {
+  content: "\e955";
+}
+.n-icon-rayo2:before {
+  content: "\e956";
+}
+.n-icon-recargar:before {
+  content: "\e957";
+}
+.n-icon-reciclaje1:before {
+  content: "\e958";
+}
+.n-icon-reciclaje2:before {
+  content: "\e959";
+}
+.n-icon-reclamar-factura2:before {
+  content: "\e95a";
+}
+.n-icon-reclamar-factura1:before {
+  content: "\e95b";
+}
+.n-icon-recordar-contrasena:before {
+  content: "\e95c";
+}
+.n-icon-recuento-de-personal:before {
+  content: "\e95d";
+}
+.n-icon-refrigeracion:before {
+  content: "\e95e";
+}
+.n-icon-regalo:before {
+  content: "\e95f";
+}
+.n-icon-registro:before {
+  content: "\e960";
+}
+.n-icon-relog:before {
+  content: "\e961";
+}
+.n-icon-navegador-web:before {
+  content: "\e962";
+}
+.n-icon-negativo:before {
+  content: "\e963";
+}
+.n-icon-neutro1:before {
+  content: "\e964";
+}
+.n-icon-neutro2:before {
+  content: "\e965";
+}
+.n-icon-notas:before {
+  content: "\e966";
+}
+.n-icon-nube:before {
+  content: "\e967";
+}
+.n-icon-ocio:before {
+  content: "\e968";
+}
+.n-icon-ofertas:before {
+  content: "\e969";
+}
+.n-icon-ok:before {
+  content: "\e96a";
+}
+.n-icon-ordenador:before {
+  content: "\e96b";
+}
+.n-icon-organigrama:before {
+  content: "\e96c";
+}
+.n-icon-pago-online-facturas:before {
+  content: "\e96d";
+}
+.n-icon-pago-telefonico:before {
+  content: "\e96e";
+}
+.n-icon-pantalla-teams:before {
+  content: "\e96f";
+}
+.n-icon-paquete:before {
+  content: "\e970";
+}
+.n-icon-pareja:before {
+  content: "\e971";
+}
+.n-icon-pausa1:before {
+  content: "\e972";
+}
+.n-icon-pausa2:before {
+  content: "\e973";
+}
+.n-icon-pdf:before {
+  content: "\e974";
+}
+.n-icon-pedir-duplicado-factura:before {
+  content: "\e975";
+}
+.n-icon-persona:before {
+  content: "\e976";
+}
+.n-icon-personas:before {
+  content: "\e977";
+}
+.n-icon-peticion-asociada-factura:before {
+  content: "\e978";
+}
+.n-icon-pin:before {
+  content: "\e979";
+}
+.n-icon-play1:before {
+  content: "\e97a";
+}
+.n-icon-play2:before {
+  content: "\e97b";
+}
+.n-icon-naturgy-teams:before {
+  content: "\e97c";
+}
+.n-icon-menos:before {
+  content: "\e97d";
+}
+.n-icon-ingenieria:before {
+  content: "\e97e";
+}
+.n-icon-lectura-contador-gas:before {
+  content: "\e97f";
+}
+.n-icon-lectura-contador-luz:before {
+  content: "\e980";
+}
+.n-icon-lectura-contador:before {
+  content: "\e981";
+}
+.n-icon-llama-hoja:before {
+  content: "\e982";
+}
+.n-icon-llave-en-mano:before {
+  content: "\e983";
+}
+.n-icon-llave-inglesa:before {
+  content: "\e984";
+}
+.n-icon-llave:before {
+  content: "\e985";
+}
+.n-icon-lupa-ojo:before {
+  content: "\e986";
+}
+.n-icon-luz-gas:before {
+  content: "\e987";
+}
+.n-icon-luz:before {
+  content: "\e988";
+}
+.n-icon-mano:before {
+  content: "\e989";
+}
+.n-icon-mantenimiento:before {
+  content: "\e98a";
+}
+.n-icon-mas:before {
+  content: "\e98b";
+}
+.n-icon-mayor-que:before {
+  content: "\e98c";
+}
+.n-icon-me-gusta:before {
+  content: "\e98d";
+}
+.n-icon-mecanismo1:before {
+  content: "\e98e";
+}
+.n-icon-mecanismo2:before {
+  content: "\e98f";
+}
+.n-icon-megafono:before {
+  content: "\e990";
+}
+.n-icon-menor-que:before {
+  content: "\e991";
+}
+.n-icon-mis-consumos:before {
+  content: "\e992";
+}
+.n-icon-mis-contratos:before {
+  content: "\e993";
+}
+.n-icon-mis-datos:before {
+  content: "\e994";
+}
+.n-icon-mis-promociones:before {
+  content: "\e995";
+}
+.n-icon-modelo-factura-347:before {
+  content: "\e996";
+}
+.n-icon-modificar-factura-online:before {
+  content: "\e997";
+}
+.n-icon-modificar-datos-cobro1:before {
+  content: "\e998";
+}
+.n-icon-modificar-datos-cobro2:before {
+  content: "\e999";
+}
+.n-icon-modificar-datos-correspondencia:before {
+  content: "\e99a";
+}
+.n-icon-modificar-datos:before {
+  content: "\e99b";
+}
+.n-icon-modificar-idioma-factura:before {
+  content: "\e99c";
+}
+.n-icon-modificar-usuario-contrasena:before {
+  content: "\e99d";
+}
+.n-icon-monedero:before {
+  content: "\e99e";
+}
+.n-icon-movil:before {
+  content: "\e99f";
+}
+.n-icon-movilidad:before {
+  content: "\e9a0";
+}
+.n-icon-multiplicacion:before {
+  content: "\e9a1";
+}
+.n-icon-mundo:before {
+  content: "\e9a2";
+}
+.n-icon-aviso-proxima-factura:before {
+  content: "\e9a3";
+}
+.n-icon-aviso-proxima-lectura:before {
+  content: "\e9a4";
+}
+.n-icon-aviso:before {
+  content: "\e9a5";
+}
+.n-icon-avisos-simple:before {
+  content: "\e9a6";
+}
+.n-icon-avisos:before {
+  content: "\e9a7";
+}
+.n-icon-ayuda:before {
+  content: "\e9a8";
+}
+.n-icon-baja-area-clientes:before {
+  content: "\e9a9";
+}
+.n-icon-bolso:before {
+  content: "\e9aa";
+}
+.n-icon-bombilla:before {
+  content: "\e9ab";
+}
+.n-icon-boton:before {
+  content: "\e9ac";
+}
+.n-icon-ordenar-alfabeticamente:before {
+  content: "\e9ad";
+}
+.n-icon-buscar-documentacion:before {
+  content: "\e9ae";
+}
+.n-icon-buscar-factura:before {
+  content: "\e9af";
+}
+.n-icon-buscar-oferta:before {
+  content: "\e9b0";
+}
+.n-icon-buscar:before {
+  content: "\e9b1";
+}
+.n-icon-calendario:before {
+  content: "\e9b2";
+}
+.n-icon-calendario2:before {
+  content: "\e9b3";
+}
+.n-icon-calor-cogeneracion:before {
+  content: "\e9b4";
+}
+.n-icon-calor-proceso:before {
+  content: "\e9b5";
+}
+.n-icon-cambio-potencia:before {
+  content: "\e9b6";
+}
+.n-icon-carnet:before {
+  content: "\e9b7";
+}
+.n-icon-cerrar1:before {
+  content: "\e9b8";
+}
+.n-icon-cerrar2:before {
+  content: "\e9b9";
+}
+.n-icon-challenges:before {
+  content: "\e9ba";
+}
+.n-icon-chat-online:before {
+  content: "\e9bb";
+}
+.n-icon-chat:before {
+  content: "\e9bc";
+}
+.n-icon-check:before {
+  content: "\e9bd";
+}
+.n-icon-checklist:before {
+  content: "\e9be";
+}
+.n-icon-cheers:before {
+  content: "\e9bf";
+}
+.n-icon-chincheta:before {
+  content: "\e9c0";
+}
+.n-icon-ciclo-combinado1:before {
+  content: "\e9c1";
+}
+.n-icon-ciclo-combinado2:before {
+  content: "\e9c2";
+}
+.n-icon-clip:before {
+  content: "\e9c3";
+}
+.n-icon-comparar-productos:before {
+  content: "\e9c4";
+}
+.n-icon-compartir:before {
+  content: "\e9c5";
+}
+.n-icon-complice1:before {
+  content: "\e9c6";
+}
+.n-icon-complice2:before {
+  content: "\e9c7";
+}
+.n-icon-compra:before {
+  content: "\e9c8";
+}
+.n-icon-consumos:before {
+  content: "\e9c9";
+}
+.n-icon-contactar-formulario:before {
+  content: "\e9ca";
+}
+.n-icon-contacto-telefonico:before {
+  content: "\e9cb";
+}
+.n-icon-contador1:before {
+  content: "\e9cc";
+}
+.n-icon-contador2:before {
+  content: "\e9cd";
+}
+.n-icon-contento1:before {
+  content: "\e9ce";
+}
+.n-icon-contento2:before {
+  content: "\e9cf";
+}
+.n-icon-corazon-plus:before {
+  content: "\e9d0";
+}
+.n-icon-corazon:before {
+  content: "\e9d1";
+}
+.n-icon-correo:before {
+  content: "\e9d2";
+}
+.n-icon-cuestion:before {
+  content: "\e9d3";
+}
+.n-icon-cyber-hub1:before {
+  content: "\e9d4";
+}
+.n-icon-cyber-hub2:before {
+  content: "\e9d5";
+}
+.n-icon-cyber-hub3:before {
+  content: "\e9d6";
+}
+.n-icon-datos-cobro:before {
+  content: "\e9d7";
+}
+.n-icon-datos-correspondencia:before {
+  content: "\e9d8";
+}
+.n-icon-datos-estadisticos:before {
+  content: "\e9d9";
+}
+.n-icon-depositos:before {
+  content: "\e9da";
+}
+.n-icon-descargar-app:before {
+  content: "\e9db";
+}
+.n-icon-descargar-factura2:before {
+  content: "\e9dc";
+}
+.n-icon-descargar-factura1:before {
+  content: "\e9dd";
+}
+.n-icon-descargar-firma-digital:before {
+  content: "\e9de";
+}
+.n-icon-descargar1:before {
+  content: "\e9df";
+}
+.n-icon-descargar2:before {
+  content: "\e9e0";
+}
+.n-icon-desconectar:before {
+  content: "\e9e1";
+}
+.n-icon-descuento:before {
+  content: "\e9e2";
+}
+.n-icon-descuento1:before {
+  content: "\e9e3";
+}
+.n-icon-flecha-derecha:before {
+  content: "\e9e4";
+}
+.n-icon-flecha-izquierda:before {
+  content: "\e9e5";
+}
+.n-icon-fotovoltaica:before {
+  content: "\e9e6";
+}
+.n-icon-gas-renovable:before {
+  content: "\e9e7";
+}
+.n-icon-gas:before {
+  content: "\e9e8";
+}
+.n-icon-gestiones-online:before {
+  content: "\e9e9";
+}
+.n-icon-graficos1:before {
+  content: "\e9ea";
+}
+.n-icon-graficos2:before {
+  content: "\e9eb";
+}
+.n-icon-gratis:before {
+  content: "\e9ec";
+}
+.n-icon-hacer-una-reclamacion:before {
+  content: "\e9ed";
+}
+.n-icon-historia:before {
+  content: "\e9ee";
+}
+.n-icon-hogar:before {
+  content: "\e9ef";
+}
+.n-icon-hoja-calculo:before {
+  content: "\e9f0";
+}
+.n-icon-home:before {
+  content: "\e9f1";
+}
+.n-icon-hora:before {
+  content: "\e9f2";
+}
+.n-icon-hucha:before {
+  content: "\e9f3";
+}
+.n-icon-huella-ambiental:before {
+  content: "\e9f4";
+}
+.n-icon-idea:before {
+  content: "\e9f5";
+}
+.n-icon-identificacion:before {
+  content: "\e9f6";
+}
+.n-icon-igual:before {
+  content: "\e9f7";
+}
+.n-icon-bombilla-hoja:before {
+  content: "\e9f8";
+}
+.n-icon-imagenes:before {
+  content: "\e9f9";
+}
+.n-icon-imprimir:before {
+  content: "\e9fa";
+}
+.n-icon-incremento:before {
+  content: "\e9fb";
+}
+.n-icon-info:before {
+  content: "\e9fc";
+}
+.n-icon-informes:before {
+  content: "\e9fd";
+}
+.n-icon-distancia:before {
+  content: "\e9fe";
+}
+.n-icon-enciar-correo:before {
+  content: "\e9ff";
+}
+.n-icon-documento2:before {
+  content: "\ea00";
+}
+.n-icon-facturas-anteriores:before {
+  content: "\ea01";
+}
+.n-icon-edificio:before {
+  content: "\ea02";
+}
+.n-icon-financiacion3:before {
+  content: "\ea03";
+}
+.n-icon-eolica:before {
+  content: "\ea04";
+}
+.n-icon-escribir:before {
+  content: "\ea05";
+}
+.n-icon-estado-reclamaciones:before {
+  content: "\ea06";
+}
+.n-icon-euro:before {
+  content: "\ea07";
+}
+.n-icon-facilitar-justificante-pago:before {
+  content: "\ea08";
+}
+.n-icon-factura-email:before {
+  content: "\ea09";
+}
+.n-icon-factura-online:before {
+  content: "\ea0a";
+}
+.n-icon-factura1:before {
+  content: "\ea0b";
+}
+.n-icon-factura2:before {
+  content: "\ea0c";
+}
+.n-icon-faqs:before {
+  content: "\ea0d";
+}
+.n-icon-favorito1:before {
+  content: "\ea0e";
+}
+.n-icon-favorito2:before {
+  content: "\ea0f";
+}
+.n-icon-fax:before {
+  content: "\ea10";
+}
+.n-icon-feedback:before {
+  content: "\ea11";
+}
+.n-icon-financiacion-aplicable:before {
+  content: "\ea12";
+}
+.n-icon-financiacion1:before {
+  content: "\ea13";
+}
+.n-icon-financiacion2:before {
+  content: "\ea14";
+}
+.n-icon-verificacion:before {
+  content: "\ea15";
+}
+.n-icon-descuento2:before {
+  content: "\ea16";
+}
+.n-icon-dinero:before {
+  content: "\ea17";
+}
+.n-icon-diploma:before {
+  content: "\ea18";
+}
+.n-icon-directorio:before {
+  content: "\ea19";
+}
+.n-icon-dispositivos:before {
+  content: "\ea1a";
+}
+.n-icon-documentacion:before {
+  content: "\ea1b";
+}
+.n-icon-documento-de-pago:before {
+  content: "\ea1c";
+}
+.n-icon-documento1:before {
+  content: "\ea1d";
+}
+.n-icon-documento-ok:before {
+  content: "\ea1e";
+}
+.n-icon-documento-blank:before {
+  content: "\ea1f";
+}
+.n-icon-dolar:before {
+  content: "\ea20";
+}
+.n-icon-editar:before {
+  content: "\ea21";
+}
+.n-icon-ejecucion:before {
+  content: "\ea22";
+}
+.n-icon-eliminar:before {
+  content: "\ea23";
+}
+.n-icon-recarga:before {
+  content: "\ea24";
+}
+.n-icon-enfadado:before {
+  content: "\ea25";
+}
+.n-icon-avion-papel:before {
+  content: "\ea26";
+}
+.n-icon-atencion:before {
+  content: "\ea27";
+}
+.n-icon-audio:before {
+  content: "\ea28";
+}
+.n-icon-avanzar2:before {
+  content: "\ea29";
+}
+.n-icon-aviso-ofertas:before {
+  content: "\ea2a";
+}
+.n-icon-apagar-audio:before {
+  content: "\ea2b";
+}
+.n-icon-arbusto:before {
+  content: "\ea2c";
+}
+.n-icon-apagar:before {
+  content: "\ea2d";
+}
+.n-icon-asignar-clientes-perfil:before {
+  content: "\ea2e";
+}
+.n-icon-asistente-online:before {
+  content: "\ea2f";
+}
+.n-icon-atencion-cliente1:before {
+  content: "\ea30";
+}
+.n-icon-atencion-cliente2:before {
+  content: "\ea31";
+}
+.n-icon-caldera-gas:before {
+  content: "\ea32";
+}
+.n-icon-alerta:before {
+  content: "\ea33";
+}
+.n-icon-alerta1:before {
+  content: "\ea34";
+}
+.n-icon-alerta2:before {
+  content: "\ea35";
+}
+.n-icon-anadir-archivo:before {
+  content: "\ea36";
+}
+.n-icon-anadir-archivos:before {
+  content: "\ea37";
+}
+.n-icon-anotacion:before {
+  content: "\ea38";
+}
+.n-icon-agua-caliente-sanitaria:before {
+  content: "\ea39";
+}
+.n-icon-agua-refacturable:before {
+  content: "\ea3a";
+}
+.n-icon-administrar-contrato:before {
+  content: "\ea3b";
+}
+.n-icon-ajustes:before {
+  content: "\ea3c";
+}
+.n-icon-365:before {
+  content: "\ea3d";
+}
+.n-icon-acceso-restringido:before {
+  content: "\ea3e";
+}
+.n-icon-acceso:before {
+  content: "\ea3f";
+}
+.n-icon-ojo-on:before {
+  content: "\ea40";
+}
+.n-icon-ojo-off:before {
+  content: "\ea41";
+}
+.n-icon-puntos:before {
+  content: "\ea42";
+}
+.n-icon-aenor:before {
+  content: "\ea43";
+}
+.n-icon-valvula:before {
+  content: "\ea44";
+}
+.n-icon-recarga-baja:before {
+  content: "\ea45";
+}
+.n-icon-servicio-baja:before {
+  content: "\ea46";
+}
+.n-icon-luz-baja:before {
+  content: "\ea47";
+}
+.n-icon-gas-baja:before {
+  content: "\ea48";
+}
+.n-icon-tarjeta-pagar:before {
+  content: "\ea49";
+}
+.n-icon-docu-pagos-certificado-pagos:before {
+  content: "\ea4a";
+}
+.n-icon-pdf2:before {
+  content: "\ea4b";
+}
+.n-icon-OCR:before {
+  content: "\ea4c";
+}
+.n-icon-clic:before {
+  content: "\ea4d";
+}
+.n-icon-mensaje-email:before {
+  content: "\ea4e";
+}
+.n-icon-lapiz:before {
+  content: "\ea4f";
+}
+.n-icon-tuberia:before {
+  content: "\ea50";
+}
+.n-icon-secadora:before {
+  content: "\ea51";
+}
+.n-icon-plug:before {
+  content: "\ea52";
+}
+.n-icon-olla:before {
+  content: "\ea53";
+}
+.n-icon-lavadora:before {
+  content: "\ea54";
+}
+.n-icon-horno:before {
+  content: "\ea55";
+}
+.n-icon-frigorifico:before {
+  content: "\ea56";
+}
+.n-icon-enchufar:before {
+  content: "\ea57";
+}
+.n-icon-caldera:before {
+  content: "\ea58";
+}
+.n-icon-caldera-luz:before {
+  content: "\ea59";
+}
+.n-icon-aacc:before {
+  content: "\ea5a";
+}
+.n-icon-lampara:before {
+  content: "\ea5b";
+}
+.n-icon-solar-baja:before {
+  content: "\ea5c";
+}
+.n-icon-filtrar:before {
+  content: "\ea5d";
+}
+.n-icon-chef:before {
+  content: "\ea5e";
+}
+.n-icon-link:before {
+  content: "\ea5f";
+}
+.n-icon-corazon-full:before {
+  content: "\ea60";
+}
+.n-icon-lupa:before {
+  content: "\ea61";
+}
+.n-icon-cancelar-alta:before {
+  content: "\ea62";
+}
+.n-icon-documento-pago-codigo:before {
+  content: "\ea63";
+}
+.n-icon-cambio-producto-luz:before {
+  content: "\ea64";
+}
+.n-icon-cambio-producto-gas:before {
+  content: "\ea65";
+}
+.n-icon-cambio-producto:before {
+  content: "\ea66";
+}
+.n-icon-baja-autoconsumo-2:before {
+  content: "\ea67";
+}
+.n-icon-baja-autoconsumo-1:before {
+  content: "\ea68";
+}
+.n-icon-autoconsumo:before {
+  content: "\ea69";
+}
+.n-icon-rss-twitter-X:before {
+  content: "\ea6a";
+}

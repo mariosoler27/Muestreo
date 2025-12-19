@@ -1,0 +1,244 @@
+/* displays */
+.hidden {
+  display: none !important;
+}
+
+.d-block {
+  display: block;
+}
+
+.d-flex {
+  display: flex;
+}
+
+/* position */
+
+.flex-center {
+  justify-content: center;
+}
+.flex-end {
+  justify-content: flex-end;
+}
+
+.v-center {
+  display: flex !important;
+  align-items: center !important;
+}
+
+.v-center-space {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: end;
+}
+
+.v-bottom {
+  align-items: flex-end;
+  display: flex;
+}
+
+.h-center {
+  margin-left: auto !important;
+  margin-right: auto !important;
+}
+
+.txt-left {
+  text-align: left !important;
+}
+
+.txt-right {
+  text-align: right !important;
+}
+
+.txt-center {
+  text-align: center !important;
+}
+
+.vertical-expand {
+  flex-direction: column !important;
+  justify-content: space-between;
+  display: flex;
+}
+
+/* typo */
+.regular {
+  font-weight: normal !important;
+}
+
+.bold {
+  font-weight: 500 !important;
+}
+
+.thin {
+  font-weight: 200 !important;
+}
+
+/* botones small con texto grande */
+.small-with-big-text {
+  font-size: 14px !important;
+}
+/* background */
+.no-fondo {
+  box-shadow: none !important;
+  background-color: transparent;
+}
+
+.bg-red {
+  background-color: red !important;
+}
+
+/* colors */
+.ok {
+  color: $ok !important;
+}
+
+.orange {
+  color: $secondary !important;
+}
+
+.orange-bold {
+  color: $secondary !important;
+  font-weight: 600;
+}
+
+.primary {
+  color: $primary !important;
+}
+
+.red {
+  color: $error;
+}
+
+/* spacing */
+.m-0 {
+  margin: 0 !important;
+}
+
+.mr-0 {
+  margin-right: 0 !important;
+}
+
+.mb-0 {
+  margin-bottom: 0 !important;
+}
+
+.mb-5 {
+  margin-bottom: $base-desktop/2 !important;
+}
+
+.mb-1 {
+  margin-bottom: $base-desktop !important;
+}
+
+.ml-0 {
+  margin-left: 0 !important;
+}
+
+.ml-5 {
+  margin-left: $base-desktop/2 !important;
+}
+
+.ml-1 {
+  margin-left: $base-desktop !important;
+}
+
+.ml-2 {
+  margin-left: $base-desktop * 2 !important;
+}
+
+.mt-0 {
+  margin-top: 0 !important;
+}
+
+.mt-5 {
+  margin-top: $base-desktop/2 !important;
+}
+
+.mt-1 {
+  margin-top: $base-desktop !important;
+}
+
+.mt-2 {
+  margin-top: $base-desktop * 2 !important;
+}
+
+.mt-3 {
+  margin-top: $base-desktop * 3 !important;
+}
+
+.p-0 {
+  padding: 0 !important;
+}
+
+.pb-0 {
+  padding-bottom: 0 !important;
+}
+
+.pt-0 {
+  padding-top: 0 !important;
+}
+
+/* fonts size */
+.f-14 {
+  font-size: 14px !important;
+}
+
+.f-20 {
+  font-size: 20px !important;
+}
+
+.f-28 {
+  font-size: 30px !important;
+}
+
+/* tooltip icon */
+.tooltip-icon {
+  position: relative;
+  font-size: 14px !important;
+  margin-left: $base-desktop;
+  vertical-align: middle;
+}
+
+/* cursor */
+.clickable {
+  cursor: pointer !important;
+}
+.no-clickable {
+  cursor: default !important;
+}
+
+/* inactive */
+.inactive {
+  opacity: 0.5;
+}
+
+.n-icon {
+  /* use !important to prevent issues with browser extensions that change fonts */
+  font-family: "naturgy-icons" !important;
+  speak: never;
+  font-style: normal;
+  font-weight: normal;
+  font-variant: normal;
+  text-transform: none;
+  line-height: 1;
+
+  /* Better Font Rendering =========== */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.selectable-text {
+  user-select: text;
+  cursor: auto;
+}
+
+body.no-cookies #onetrust-consent-sdk {
+  display: none;
+}
+
+p {
+  font-size: 14px;
+  line-height: 17px;
+  color: $primary;
+  margin: $base-desktop * 2 0;
+  font-weight: normal;
+}

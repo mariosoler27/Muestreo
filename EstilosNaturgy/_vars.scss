@@ -1,0 +1,73 @@
+/* Colors */
+$primary: #004571;
+$secondary: #e57200;
+$background: #f9fafb;
+
+$ok: #90ae6e;
+$warning: #f2b880;
+$error: #ff1924;
+$disabled: #99b5c6;
+
+$matiz1: #fafafa;
+$matiz2: #f2f6f8;
+$matiz3: #edf1f4;
+$matiz4: #e5ecf0;
+$matiz5: #ccdae3;
+$matiz6: #0045710d;
+
+$complement1: #4e7e17;
+$complement2: #ffbb38;
+$complement3: #df1642;
+$complement4: #f4f7c8;
+$complement5: #fdf1e6;
+$complemento6: rgba(5, 192, 144, 0.05);
+
+$aenor: #a2ad00;
+
+/* buttons */
+$secondary-hover: #ff7f00;
+$secondary-outline-hover: $complement5;
+
+$primary-hover: $primary;
+$primary-outline-hover: $matiz2;
+
+/* Shadow */
+$pasive: 0 3px 5px rgba(12, 17, 34, 0.1);
+$active: 0 3px 20px rgba(12, 17, 34, 0.1);
+$inner: inset 0px 2px 2px rgba(0, 0, 0, 0.1);
+
+/* Gradient */
+$gradient: radial-gradient(100% 100% at 100% 100%, #f4fbff 0%, #fcfdff 100%);
+$gradient-orange: radial-gradient(
+  100% 100% at 100% 100%,
+  #fff8ea 0%,
+  #fffdfb 100%
+);
+
+$prueba: repeating-linear-gradient(
+  -50deg,
+  $secondary,
+  $secondary 5px,
+  #ffffff 5px,
+  #ffffff 10px,
+  #ffffff 10px
+);
+/* responsive */
+$mobile-xs: "only screen and (max-width: 435px)";
+$mobile: " only screen and (max-width: 600px)";
+$tablet: " only screen and (min-width: 601px) and (max-width: 1024px)";
+$desktop: " only screen and (min-width: 1025px)";
+$desktop-xl: " only screen and (min-width: 1201px)";
+
+$bp-mobile-xs: 435px;
+$bp-mobile: 600px;
+$bp-tablet: 767px;
+$bp-desktop: 1024px;
+$bp-desktop-xl: 1200px;
+$bp-desktop-xxl: 1250px;
+$bp-desktop-xxxl: 1650px;
+
+/* Alineación vertical */
+/* Para una coherencia de espaciado vertical todos los márgenes, paddings, etc. serán un multiplo de este valor */
+$base-desktop: 10px;
+$base-mobile: 8px;

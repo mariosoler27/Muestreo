@@ -1,0 +1,153 @@
+html {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  background-color: #f9fafb;
+  body {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    #__next {
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+      .newCo {
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-start;
+        min-height: 100dvh;
+        > header {
+          flex: 0 0 auto;
+          z-index: 3;
+          position: sticky;
+          top: 0px;
+          left: 0;
+          width: 100%;
+          border-radius: 0;
+          overflow: visible;
+          &.has-site-selector {
+            top: 60px;
+          }
+          &.has-agentbar {
+            + main {
+              padding-top: 122px;
+            }
+            &.open {
+              + main {
+                padding-top: 485px;
+              }
+            }
+          }
+          @media (max-width: $bp-desktop) {
+            &.has-agentbar {
+              + main {
+                padding-top: 132px;
+              }
+              &.open {
+                + main {
+                  padding-top: 495px;
+                }
+              }
+            }
+          }
+          @media #{$mobile} {
+            &.has-agentbar {
+              + main {
+                padding-top: 122px;
+              }
+            }
+          }
+        }
+        > main {
+          flex: 1 1 auto;
+          position: relative;
+          z-index: 2;
+          .main-content {
+            max-width: 1026px; // 978 + 48 padding
+            margin: 0 auto 50px;
+            position: relative; // needed for aside layer
+          }
+          .main-2column {
+            display: flex;
+            width: 100%;
+            .main-content {
+              max-width: 1098px; //978 + 120 padding
+            }
+          }
+          @media (min-width: $bp-desktop + 1) {
+            .main-2column {
+              .column-left {
+                flex: 0 0 27%;
+              }
+              .column-right {
+                width: 73%;
+                .main-content {
+                  padding: 0 30px;
+                }
+              }
+            }
+          }
+          @media (min-width: $bp-desktop-xxl + 1) {
+            .main-2column {
+              .column-left {
+                flex: 0 0 320px;
+              }
+              .column-right {
+                width: 80%;
+                .main-content {
+                  padding: 0 60px;
+                }
+              }
+            }
+          }
+          @media (min-width: $bp-desktop-xxxl) {
+            .main-2column {
+              .column-left {
+                flex: 0 2 20%;
+              }
+              .column-right {
+                width: 100%;
+                min-width: 1098px; //978 + 120 padding
+              }
+            }
+          }
+
+          @media (max-width: $bp-desktop) {
+            .main-content {
+              max-width: 100%;
+            }
+            .main-2column {
+              position: relative;
+              .column-left {
+                width: 100%;
+                position: absolute;
+                height: 100%;
+              }
+              .column-right {
+                width: 100%;
+                padding-bottom: 40px;
+                position: relative;
+              }
+            }
+          }
+
+          @media (min-width: $bp-tablet + 1) and (max-width: $bp-desktop) {
+            .main-2column {
+              .column-right {
+                padding-bottom: 65px;
+              }
+            }
+          }
+          @media #{$mobile} {
+            .main-content {
+              padding: $base-mobile;
+            }
+          }
+        }
+        > footer {
+          flex: 0 0 auto;
+        }
+      }
+    }
+  }
+}
