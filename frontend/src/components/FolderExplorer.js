@@ -1,67 +1,141 @@
 import React, { useState, useEffect } from 'react';
-import { getFolders } from '../services/api';
+import { getAvailableBuckets, getFilesByFolder } from '../services/api';
 
-const FolderExplorer = ({ onFolderSelect, selectedFolder, loading: parentLoading, refreshKey }) => {
+const FolderExplorer = ({ onFolderSelect, selectedFolder, loading: parentLoading, refreshKey, bucketInfo }) => {
   const [expandedFolders, setExpandedFolders] = useState(new Set());
   const [folderStructure, setFolderStructure] = useState([]);
-  const [userAuthorization, setUserAuthorization] = useState(null);
+  const [userAuthorizations, setUserAuthorizations] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // Cargar autorización del usuario al montar el componente
+  // Cargar autorizaciones del usuario al montar el componente
   useEffect(() => {
-    loadUserFolders();
+    loadUserAuthorizations();
   }, []);
 
-  // Recargar cuando cambie el refreshKey (cambio de bucket)
+  // Recargar cuando cambie el refreshKey o bucketInfo
   useEffect(() => {
-    if (refreshKey) {
-      loadUserFolders();
+    if (refreshKey || bucketInfo) {
+      loadUserAuthorizations();
     }
-  }, [refreshKey]);
+  }, [refreshKey, bucketInfo]);
 
-  const loadUserFolders = async () => {
+  const loadUserAuthorizations = async () => {
     try {
       setLoading(true);
-      const response = await getFolders();
+      const response = await getAvailableBuckets();
       
-      setUserAuthorization({
-        basePath: response.basePath,
-        folders: response.folders
-      });
-      
-      buildFolderStructure(response);
+      if (response.success && response.buckets) {
+        setUserAuthorizations(response.buckets);
+        await buildFolderStructure(response.buckets);
+      }
     } catch (error) {
-      console.error('Error cargando carpetas:', error);
+      console.error('Error cargando autorizaciones:', error);
     } finally {
       setLoading(false);
     }
   };
 
-  const buildFolderStructure = (response) => {
-    const { basePath, folders } = response;
-    
-    // Extraer el nombre del grupo de la ruta base (última parte)
-    const groupName = basePath.split('/').pop();
-    
-    // Crear estructura de carpetas
-    const structure = [{
-      id: groupName.toLowerCase(),
-      name: groupName,
-      path: basePath,
-      type: 'group',
-      children: folders.map(folder => ({
-        id: folder.name.toLowerCase(),
-        name: folder.name,
-        path: folder.path,
-        type: 'folder',
-        parent: groupName.toLowerCase()
-      }))
-    }];
+  const buildFolderStructure = async (authorizations) => {
+    try {
+      // Filtrar autorizaciones por bucket si hay uno específicamente seleccionado
+      let filteredAuthorizations = authorizations;
+      
+      if (bucketInfo && bucketInfo.selectedBucket && bucketInfo.selectedBucket.bucket) {
+        const selectedBucketName = bucketInfo.selectedBucket.bucket;
+        filteredAuthorizations = authorizations.filter(auth => auth.bucket === selectedBucketName);
+        console.log(`Filtrando por bucket: ${selectedBucketName}. Autorizaciones encontradas: ${filteredAuthorizations.length}`);
+      }
+      
+      // Agrupar autorizaciones filtradas por subcarpeta
+      const groupedAuth = {};
+      
+      filteredAuthorizations.forEach(auth => {
+        const subcarpeta = auth.grupoDocumentos.replace('Recepcion/Muestreo/', '');
+        
+        if (!groupedAuth[subcarpeta]) {
+          groupedAuth[subcarpeta] = {
+            name: subcarpeta,
+            path: auth.grupoDocumentos
+          };
+        }
+      });
 
-    setFolderStructure(structure);
-    
-    // Expandir automáticamente el grupo principal
-    setExpandedFolders(new Set([groupName.toLowerCase()]));
+      // Para cada subcarpeta permitida, cargar su contenido (archivos y carpetas)
+      const subcarpetas = [];
+      for (const [subcarpetaName, subcarpetaInfo] of Object.entries(groupedAuth)) {
+        try {
+          // Usar getFilesByFolder que ya maneja la autenticación correctamente
+          const files = await getFilesByFolder(subcarpetaInfo.path);
+          
+          const folders = [];
+          let fileCount = 0;
+          
+          if (files && Array.isArray(files)) {
+            const folderSet = new Set();
+            
+            files.forEach(file => {
+              if (file.folder && file.folder !== subcarpetaInfo.path) {
+                // Es un archivo dentro de una subcarpeta - extraer nombre de la carpeta
+                const relativePath = file.folder.replace(subcarpetaInfo.path + '/', '');
+                const folderName = relativePath.split('/')[0];
+                
+                if (!folderSet.has(folderName)) {
+                  folderSet.add(folderName);
+                  folders.push({
+                    id: `${subcarpetaName.toLowerCase()}-${folderName.toLowerCase()}`,
+                    name: folderName,
+                    path: `${subcarpetaInfo.path}/${folderName}`,
+                    type: 'folder',
+                    parent: subcarpetaName.toLowerCase()
+                  });
+                }
+              } else if (file.folder === subcarpetaInfo.path) {
+                // Es un archivo en el directorio raíz de la subcarpeta - contar
+                fileCount++;
+              }
+            });
+          }
+
+          subcarpetas.push({
+            id: subcarpetaName.toLowerCase(),
+            name: subcarpetaName,
+            path: subcarpetaInfo.path,
+            type: 'group',
+            parent: 'recepcion-muestreo',
+            children: folders,
+            fileCount: fileCount
+          });
+        } catch (error) {
+          console.error(`Error cargando contenido para ${subcarpetaName}:`, error);
+          // Añadir subcarpeta vacía si hay error
+          subcarpetas.push({
+            id: subcarpetaName.toLowerCase(),
+            name: subcarpetaName,
+            path: subcarpetaInfo.path,
+            type: 'group',
+            parent: 'recepcion-muestreo',
+            children: []
+          });
+        }
+      }
+
+      // Crear estructura jerárquica
+      const structure = [{
+        id: 'recepcion-muestreo',
+        name: 'Recepcion/Muestreo',
+        path: 'Recepcion/Muestreo',
+        type: 'root',
+        children: subcarpetas
+      }];
+
+      setFolderStructure(structure);
+      
+      // Expandir automáticamente Recepcion/Muestreo
+      setExpandedFolders(new Set(['recepcion-muestreo']));
+      
+    } catch (error) {
+      console.error('Error construyendo estructura de carpetas:', error);
+    }
   };
 
   const toggleFolder = (folderId) => {
@@ -75,10 +149,12 @@ const FolderExplorer = ({ onFolderSelect, selectedFolder, loading: parentLoading
   };
 
   const handleFolderClick = (folder) => {
-    if (folder.type === 'folder') {
+    if (folder.type === 'folder' || folder.type === 'group') {
       onFolderSelect(folder);
-    } else if (folder.type === 'group') {
-      toggleFolder(folder.id);
+      // Si es un grupo con hijos, también expandir/colapsar
+      if (folder.type === 'group') {
+        toggleFolder(folder.id);
+      }
     }
   };
 
@@ -106,7 +182,7 @@ const FolderExplorer = ({ onFolderSelect, selectedFolder, loading: parentLoading
           <span className="folder-name">{folder.name}</span>
           {folder.type === 'group' && (
             <span className="folder-count">
-              ({folder.children.length})
+              ({folder.fileCount || 0} archivo{(folder.fileCount || 0) !== 1 ? 's' : ''})
             </span>
           )}
         </div>
@@ -123,9 +199,6 @@ const FolderExplorer = ({ onFolderSelect, selectedFolder, loading: parentLoading
   if (loading) {
     return (
       <div className="folder-explorer">
-        <div className="explorer-header">
-          <h2>📁 Carpetas</h2>
-        </div>
         <div className="loading">
           <p>Cargando estructura de carpetas...</p>
         </div>
@@ -135,15 +208,6 @@ const FolderExplorer = ({ onFolderSelect, selectedFolder, loading: parentLoading
 
   return (
     <div className="folder-explorer">
-      <div className="explorer-header">
-        <h2>📁 Carpetas</h2>
-        {userAuthorization && (
-          <div className="auth-info">
-            <span className="auth-path">{userAuthorization.basePath.split('/').pop()}</span>
-          </div>
-        )}
-      </div>
-      
       <div className="folder-structure">
         {folderStructure.length > 0 ? (
           folderStructure.map(folder => renderFolder(folder))

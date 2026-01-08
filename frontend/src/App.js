@@ -248,6 +248,7 @@ function App() {
               selectedFolder={selectedFolder}
               loading={loading}
               refreshKey={folderRefreshKey}
+              bucketInfo={bucketInfo}
             />
           </div>
 

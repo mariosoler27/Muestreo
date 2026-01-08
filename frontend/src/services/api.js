@@ -172,6 +172,62 @@ export const checkIsAdmin = async () => {
 
 // ===== FUNCIONES DE ADMINISTRACIÓN =====
 
+// ===== GESTIÓN DE USUARIOS =====
+
+// Obtener todos los usuarios (solo admins)
+export const getAllUsers = async () => {
+  try {
+    const response = await authenticatedFetch(`${API_BASE_URL}/admin/users`);
+    return await handleResponse(response);
+  } catch (error) {
+    console.error('Error en getAllUsers:', error);
+    throw error;
+  }
+};
+
+// Crear nuevo usuario (solo admins)
+export const createUser = async (userData) => {
+  try {
+    const response = await authenticatedFetch(`${API_BASE_URL}/admin/users`, {
+      method: 'POST',
+      body: JSON.stringify(userData),
+    });
+    return await handleResponse(response);
+  } catch (error) {
+    console.error('Error en createUser:', error);
+    throw error;
+  }
+};
+
+// Actualizar usuario (solo admins)
+export const updateUser = async (id, updates) => {
+  try {
+    const response = await authenticatedFetch(`${API_BASE_URL}/admin/users/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(updates),
+    });
+    return await handleResponse(response);
+  } catch (error) {
+    console.error('Error en updateUser:', error);
+    throw error;
+  }
+};
+
+// Eliminar usuario (solo admins)
+export const deleteUser = async (id) => {
+  try {
+    const response = await authenticatedFetch(`${API_BASE_URL}/admin/users/${id}`, {
+      method: 'DELETE',
+    });
+    return await handleResponse(response);
+  } catch (error) {
+    console.error('Error en deleteUser:', error);
+    throw error;
+  }
+};
+
+// ===== GESTIÓN DE AUTORIZACIONES =====
+
 // Obtener todas las autorizaciones (solo admins)
 export const getAllAuthorizations = async () => {
   try {

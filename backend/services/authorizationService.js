@@ -103,10 +103,9 @@ class AuthorizationService {
    */
   async createUserAuthorization(username, bucket, grupoDocumentos) {
     try {
-      // Validar grupo de documentos
-      const validGroups = ['Cartas', 'Facturas'];
-      if (!validGroups.includes(grupoDocumentos)) {
-        throw new Error(`Grupo de documentos inválido. Debe ser: ${validGroups.join(' o ')}`);
+      // Validar grupo de documentos - debe contener ruta válida
+      if (!grupoDocumentos.includes('Recepcion/Muestreo/')) {
+        throw new Error(`Grupo de documentos debe contener una ruta válida como Recepcion/Muestreo/Cartas, Recepcion/Muestreo/Facturas, etc.`);
       }
 
       const newAuth = await this.userAuthModel.createUserAuthorization(
@@ -139,11 +138,8 @@ class AuthorizationService {
   async updateUserAuthorization(username, updates) {
     try {
       // Validar grupo de documentos si se está actualizando
-      if (updates.grupo_documentos) {
-        const validGroups = ['Cartas', 'Facturas'];
-        if (!validGroups.includes(updates.grupo_documentos)) {
-          throw new Error(`Grupo de documentos inválido. Debe ser: ${validGroups.join(' o ')}`);
-        }
+      if (updates.grupo_documentos && !updates.grupo_documentos.includes('Recepcion/Muestreo/')) {
+        throw new Error(`Grupo de documentos debe contener una ruta válida como Recepcion/Muestreo/Cartas, Recepcion/Muestreo/Facturas, etc.`);
       }
 
       const updatedAuth = await this.userAuthModel.updateUserAuthorization(username, updates);
@@ -320,7 +316,7 @@ class AuthorizationService {
     try {
       const validGroups = ['Cartas', 'Facturas', 'Contratos'];
       if (updates.grupo_documentos && !updates.grupo_documentos.includes('Recepcion/Muestreo/')) {
-        throw new Error(`Grupo de documentos debe contener una ruta válida como Recepcion/Muestreo/Cartas`);
+        throw new Error(`Grupo de documentos debe contener una ruta válida como Recepcion/Muestreo/CartasCobro`);
       }
 
       const result = await this.userAuthModel.updateAuthorizationById(id, updates);
@@ -335,7 +331,7 @@ class AuthorizationService {
     try {
       const validGroups = ['Cartas', 'Facturas', 'Contratos'];
       if (!grupoDocumentos.includes('Recepcion/Muestreo/')) {
-        throw new Error(`Grupo de documentos debe contener una ruta válida como Recepcion/Muestreo/Cartas`);
+        throw new Error(`Grupo de documentos debe contener una ruta válida como Recepcion/Muestreo/CartasCobro`);
       }
 
       const result = await this.userAuthModel.createAuthorizationAdmin(username, bucket, grupoDocumentos, admin);

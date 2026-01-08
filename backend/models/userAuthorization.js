@@ -1,11 +1,13 @@
 const sqlite3 = require('sqlite3').verbose();
 const path = require('path');
 const fs = require('fs').promises;
+const User = require('./user');
 
 /**
  * Modelo de autorización de usuarios utilizando SQLite
- * Estructura de la tabla de autorización:
- * - username: nombre del usuario
+ * Nueva estructura de la tabla de autorización:
+ * - id: identificador único de la autorización
+ * - user_id: foreign key a la tabla users
  * - bucket: bucket S3 asignado
  * - grupo_documentos: 'Cartas' o 'Facturas'
  * - activo: true/false
@@ -17,6 +19,7 @@ class UserAuthorization {
     this.dbPath = path.join(__dirname, '../data/user_authorization.db');
     this.db = null;
     this.isReady = false;
+    this.userModel = new User();
     this.initPromise = this.initDatabase();
   }
 
@@ -51,27 +54,48 @@ class UserAuthorization {
    * Crear las tablas necesarias
    */
   createTables(resolve, reject) {
-    const createTableSQL = `
-      CREATE TABLE IF NOT EXISTS user_authorizations (
+    // Crear la tabla de usuarios si no existe
+    const createUsersTableSQL = `
+      CREATE TABLE IF NOT EXISTS users (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
-        username TEXT NOT NULL,
-        bucket TEXT NOT NULL,
-        grupo_documentos TEXT NOT NULL,
+        username TEXT NOT NULL UNIQUE,
+        admin BOOLEAN NOT NULL DEFAULT 0,
         activo BOOLEAN NOT NULL DEFAULT 1,
-        fecha_creacion DATETIME DEFAULT CURRENT_TIMESTAMP,
-        UNIQUE(username, bucket, grupo_documentos)
+        fecha_creacion DATETIME DEFAULT CURRENT_TIMESTAMP
       )
     `;
 
-    this.db.run(createTableSQL, (err) => {
+    this.db.run(createUsersTableSQL, (err) => {
       if (err) {
-        console.error('Error creando tabla user_authorizations:', err.message);
+        console.error('Error creando tabla users:', err.message);
         reject(err);
-      } else {
-        console.log('Tabla user_authorizations creada o ya existe');
-        this.isReady = true;
-        resolve();
+        return;
       }
+
+      // Crear la tabla de autorizaciones con estructura definitiva
+      const createAuthTableSQL = `
+        CREATE TABLE IF NOT EXISTS user_authorizations (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          user_id INTEGER NOT NULL,
+          bucket TEXT NOT NULL,
+          grupo_documentos TEXT NOT NULL,
+          activo BOOLEAN NOT NULL DEFAULT 1,
+          fecha_creacion DATETIME DEFAULT CURRENT_TIMESTAMP,
+          FOREIGN KEY (user_id) REFERENCES users (id),
+          UNIQUE(user_id, bucket, grupo_documentos)
+        )
+      `;
+
+      this.db.run(createAuthTableSQL, (err) => {
+        if (err) {
+          console.error('Error creando tabla user_authorizations:', err.message);
+          reject(err);
+        } else {
+          console.log('Tablas users y user_authorizations creadas o ya existen');
+          this.isReady = true;
+          resolve();
+        }
+      });
     });
   }
 
@@ -150,7 +174,13 @@ class UserAuthorization {
   async getUserAuthorization(username) {
     try {
       await this.ensureReady();
-      const sql = 'SELECT * FROM user_authorizations WHERE username = ? AND activo = 1 ORDER BY fecha_creacion DESC LIMIT 1';
+      const sql = `
+        SELECT ua.*, u.username, u.admin 
+        FROM user_authorizations ua
+        JOIN users u ON ua.user_id = u.id
+        WHERE u.username = ? AND ua.activo = 1 AND u.activo = 1
+        ORDER BY ua.fecha_creacion DESC LIMIT 1
+      `;
       const userAuth = await this.getQuery(sql, [username]);
       return userAuth || null;
     } catch (error) {
@@ -165,7 +195,13 @@ class UserAuthorization {
   async getAllUserAuthorizations(username) {
     try {
       await this.ensureReady();
-      const sql = 'SELECT * FROM user_authorizations WHERE username = ? AND activo = 1 ORDER BY fecha_creacion DESC';
+      const sql = `
+        SELECT ua.*, u.username, u.admin 
+        FROM user_authorizations ua
+        JOIN users u ON ua.user_id = u.id
+        WHERE u.username = ? AND ua.activo = 1 AND u.activo = 1
+        ORDER BY ua.fecha_creacion DESC
+      `;
       const userAuths = await this.allQuery(sql, [username]);
       return userAuths || [];
     } catch (error) {
@@ -180,7 +216,13 @@ class UserAuthorization {
   async getUserAuthorizationSpecific(username, bucket, grupoDocumentos) {
     try {
       await this.ensureReady();
-      const sql = 'SELECT * FROM user_authorizations WHERE username = ? AND bucket = ? AND grupo_documentos = ? AND activo = 1';
+      const sql = `
+        SELECT ua.*, u.username, u.admin 
+        FROM user_authorizations ua
+        JOIN users u ON ua.user_id = u.id
+        WHERE u.username = ? AND ua.bucket = ? AND ua.grupo_documentos = ? 
+        AND ua.activo = 1 AND u.activo = 1
+      `;
       const userAuth = await this.getQuery(sql, [username, bucket, grupoDocumentos]);
       return userAuth || null;
     } catch (error) {
@@ -196,6 +238,13 @@ class UserAuthorization {
     try {
       await this.ensureReady();
       
+      // Primero asegurar que el usuario existe
+      let user = await this.userModel.getUser(username);
+      if (!user) {
+        // Crear usuario si no existe
+        user = await this.userModel.createUser(username, false);
+      }
+      
       // Verificar si ya existe esta autorización específica
       const existing = await this.getUserAuthorizationSpecific(username, bucket, grupoDocumentos);
       
@@ -205,22 +254,27 @@ class UserAuthorization {
           const updateSql = `
             UPDATE user_authorizations 
             SET activo = 1, fecha_creacion = CURRENT_TIMESTAMP
-            WHERE username = ? AND bucket = ? AND grupo_documentos = ?
+            WHERE user_id = ? AND bucket = ? AND grupo_documentos = ?
           `;
-          await this.runQuery(updateSql, [username, bucket, grupoDocumentos]);
+          await this.runQuery(updateSql, [user.id, bucket, grupoDocumentos]);
           return await this.getUserAuthorizationSpecific(username, bucket, grupoDocumentos);
         }
         return existing;
       } else {
         // Crear nueva autorización
         const insertSql = `
-          INSERT INTO user_authorizations (username, bucket, grupo_documentos, activo)
+          INSERT INTO user_authorizations (user_id, bucket, grupo_documentos, activo)
           VALUES (?, ?, ?, 1)
         `;
-        const result = await this.runQuery(insertSql, [username, bucket, grupoDocumentos]);
+        const result = await this.runQuery(insertSql, [user.id, bucket, grupoDocumentos]);
         
-        // Devolver la nueva autorización
-        const selectSql = 'SELECT * FROM user_authorizations WHERE id = ?';
+        // Devolver la nueva autorización con JOIN
+        const selectSql = `
+          SELECT ua.*, u.username, u.admin 
+          FROM user_authorizations ua
+          JOIN users u ON ua.user_id = u.id
+          WHERE ua.id = ?
+        `;
         return await this.getQuery(selectSql, [result.id]);
       }
     } catch (error) {
@@ -236,10 +290,16 @@ class UserAuthorization {
     try {
       await this.ensureReady();
       
-      // Verificar que el usuario existe
+      // Obtener el usuario y su autorización
+      const user = await this.userModel.getUser(username);
+      if (!user) {
+        throw new Error(`No se encontró el usuario: ${username}`);
+      }
+
+      // Verificar que el usuario tiene autorizaciones
       const existing = await this.getQuery(
-        'SELECT * FROM user_authorizations WHERE username = ?', 
-        [username]
+        'SELECT * FROM user_authorizations WHERE user_id = ? LIMIT 1', 
+        [user.id]
       );
       
       if (!existing) {
@@ -262,16 +322,19 @@ class UserAuthorization {
         throw new Error('No se especificaron campos válidos para actualizar');
       }
 
-      updateValues.push(username);
-      const updateSql = `UPDATE user_authorizations SET ${updateFields.join(', ')} WHERE username = ?`;
+      updateValues.push(user.id);
+      const updateSql = `UPDATE user_authorizations SET ${updateFields.join(', ')} WHERE user_id = ?`;
       
       await this.runQuery(updateSql, updateValues);
       
-      // Devolver la autorización actualizada
-      return await this.getQuery(
-        'SELECT * FROM user_authorizations WHERE username = ?', 
-        [username]
-      );
+      // Devolver la primera autorización actualizada con JOIN
+      const selectSql = `
+        SELECT ua.*, u.username, u.admin 
+        FROM user_authorizations ua
+        JOIN users u ON ua.user_id = u.id
+        WHERE u.username = ? LIMIT 1
+      `;
+      return await this.getQuery(selectSql, [username]);
     } catch (error) {
       console.error('Error actualizando autorización de usuario:', error);
       throw error;
@@ -291,7 +354,12 @@ class UserAuthorization {
   async getAllAuthorizations() {
     try {
       await this.ensureReady();
-      const sql = 'SELECT * FROM user_authorizations ORDER BY fecha_creacion DESC';
+      const sql = `
+        SELECT ua.*, u.username, u.admin 
+        FROM user_authorizations ua
+        JOIN users u ON ua.user_id = u.id
+        ORDER BY ua.fecha_creacion DESC
+      `;
       const data = await this.allQuery(sql);
       return data;
     } catch (error) {
@@ -348,10 +416,7 @@ class UserAuthorization {
    */
   async isUserAdmin(username) {
     try {
-      await this.ensureReady();
-      const sql = 'SELECT admin FROM user_authorizations WHERE username = ? AND activo = 1 AND admin = 1 LIMIT 1';
-      const result = await this.getQuery(sql, [username]);
-      return !!result;
+      return await this.userModel.isUserAdmin(username);
     } catch (error) {
       console.error('Error verificando si usuario es admin:', error);
       return false;
@@ -380,29 +445,64 @@ class UserAuthorization {
     try {
       await this.ensureReady();
       
-      // Construir query de actualización dinámicamente
-      const allowedFields = ['username', 'bucket', 'grupo_documentos', 'activo', 'admin'];
-      const updateFields = [];
-      const updateValues = [];
+      // Obtener la autorización actual para saber el user_id
+      const currentAuth = await this.getQuery(
+        'SELECT * FROM user_authorizations WHERE id = ?', 
+        [id]
+      );
+      
+      if (!currentAuth) {
+        throw new Error(`No se encontró autorización con ID: ${id}`);
+      }
 
-      allowedFields.forEach(field => {
-        if (updates.hasOwnProperty(field)) {
-          updateFields.push(`${field} = ?`);
-          updateValues.push(updates[field]);
+      // Separar campos de usuario y autorización
+      const userFields = ['username', 'admin'];
+      const authFields = ['bucket', 'grupo_documentos', 'activo'];
+      
+      const userUpdates = {};
+      const authUpdates = {};
+      
+      Object.keys(updates).forEach(field => {
+        if (userFields.includes(field)) {
+          userUpdates[field] = updates[field];
+        } else if (authFields.includes(field)) {
+          authUpdates[field] = updates[field];
         }
       });
 
-      if (updateFields.length === 0) {
-        throw new Error('No se especificaron campos válidos para actualizar');
+      // Actualizar usuario si hay campos de usuario
+      if (Object.keys(userUpdates).length > 0) {
+        if (userUpdates.username) {
+          await this.userModel.updateUserById(currentAuth.user_id, userUpdates);
+        } else {
+          // Solo actualizar admin
+          await this.userModel.updateUserById(currentAuth.user_id, { admin: userUpdates.admin });
+        }
       }
 
-      updateValues.push(id);
-      const updateSql = `UPDATE user_authorizations SET ${updateFields.join(', ')} WHERE id = ?`;
+      // Actualizar autorización si hay campos de autorización
+      if (Object.keys(authUpdates).length > 0) {
+        const updateFields = [];
+        const updateValues = [];
+
+        Object.keys(authUpdates).forEach(field => {
+          updateFields.push(`${field} = ?`);
+          updateValues.push(authUpdates[field]);
+        });
+
+        updateValues.push(id);
+        const updateSql = `UPDATE user_authorizations SET ${updateFields.join(', ')} WHERE id = ?`;
+        await this.runQuery(updateSql, updateValues);
+      }
       
-      await this.runQuery(updateSql, updateValues);
-      
-      // Devolver la autorización actualizada
-      return await this.getQuery('SELECT * FROM user_authorizations WHERE id = ?', [id]);
+      // Devolver la autorización actualizada con JOIN
+      const selectSql = `
+        SELECT ua.*, u.username, u.admin 
+        FROM user_authorizations ua
+        JOIN users u ON ua.user_id = u.id
+        WHERE ua.id = ?
+      `;
+      return await this.getQuery(selectSql, [id]);
     } catch (error) {
       console.error('Error actualizando autorización por ID:', error);
       throw error;
@@ -412,18 +512,35 @@ class UserAuthorization {
   /**
    * Crear autorización completa (para administradores)
    */
-  async createAuthorizationAdmin(username, bucket, grupoDocumentos, admin = false) {
+  async createAuthorizationAdmin(username, bucket, grupoDocumentos, admin = null) {
     try {
       await this.ensureReady();
       
-      const insertSql = `
-        INSERT INTO user_authorizations (username, bucket, grupo_documentos, admin, activo)
-        VALUES (?, ?, ?, ?, 1)
-      `;
-      const result = await this.runQuery(insertSql, [username, bucket, grupoDocumentos, admin]);
+      // Crear o actualizar usuario
+      let user = await this.userModel.getUser(username);
+      if (!user) {
+        // Si no existe el usuario, crearlo con los privilegios especificados
+        user = await this.userModel.createUser(username, admin || false);
+      } else if (admin !== null && admin !== undefined && user.admin !== admin) {
+        // Solo actualizar privilegios de admin si se especificó explícitamente y es diferente
+        await this.userModel.updateUser(username, { admin });
+        user.admin = admin;
+      }
       
-      // Devolver la nueva autorización
-      const selectSql = 'SELECT * FROM user_authorizations WHERE id = ?';
+      // Crear autorización
+      const insertSql = `
+        INSERT INTO user_authorizations (user_id, bucket, grupo_documentos, activo)
+        VALUES (?, ?, ?, 1)
+      `;
+      const result = await this.runQuery(insertSql, [user.id, bucket, grupoDocumentos]);
+      
+      // Devolver la nueva autorización con JOIN
+      const selectSql = `
+        SELECT ua.*, u.username, u.admin 
+        FROM user_authorizations ua
+        JOIN users u ON ua.user_id = u.id
+        WHERE ua.id = ?
+      `;
       return await this.getQuery(selectSql, [result.id]);
     } catch (error) {
       console.error('Error creando autorización completa:', error);

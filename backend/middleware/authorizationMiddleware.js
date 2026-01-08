@@ -23,30 +23,10 @@ const authorizationMiddleware = async (req, res, next) => {
 
     const username = req.user.username;
     
-    // Verificar si se especifica un bucket específico en los headers
-    const selectedBucketId = req.headers['x-selected-bucket-id'];
-    const selectedGroupDocuments = req.headers['x-selected-group-documents'];
+    // Obtener todas las autorizaciones del usuario
+    const allAuths = await authorizationService.getAllUserAuthorizationConfigs(username);
     
-    let userAuth = null;
-    
-    if (selectedBucketId && selectedGroupDocuments) {
-      // Buscar la autorización específica
-      const allAuths = await authorizationService.getAllUserAuthorizationConfigs(username);
-      userAuth = allAuths.find(auth => auth.id === parseInt(selectedBucketId));
-      
-      if (!userAuth) {
-        console.log(`Usuario ${username} no tiene autorización para el bucket ID ${selectedBucketId}`);
-        return res.status(403).json({
-          error: 'Sin autorización para bucket específico',
-          message: 'El usuario no tiene permisos para el bucket seleccionado'
-        });
-      }
-    } else {
-      // Usar la autorización por defecto (primera encontrada)
-      userAuth = await authorizationService.getUserAuthorizationConfig(username);
-    }
-    
-    if (!userAuth) {
+    if (!allAuths || allAuths.length === 0) {
       console.log(`Usuario ${username} no tiene permisos de autorización configurados`);
       return res.status(403).json({
         error: 'Sin autorización',
@@ -54,21 +34,47 @@ const authorizationMiddleware = async (req, res, next) => {
       });
     }
 
-    if (!userAuth.activo) {
-      console.log(`Usuario ${username} tiene permisos desactivados`);
+    // Filtrar solo autorizaciones activas
+    const activeAuths = allAuths.filter(auth => auth.activo);
+    
+    if (activeAuths.length === 0) {
+      console.log(`Usuario ${username} no tiene permisos activos`);
       return res.status(403).json({
-        error: 'Autorización desactivada',
-        message: 'Los permisos del usuario han sido desactivados'
+        error: 'Sin autorizaciones activas',
+        message: 'Todas las autorizaciones del usuario están desactivadas'
       });
     }
 
+    // Verificar si se especifica una carpeta específica
+    const folderPath = req.query.folder || req.body.folderPath;
+    let userAuth = null;
+
+    if (folderPath) {
+      // Buscar la autorización que coincida con la carpeta solicitada
+      userAuth = activeAuths.find(auth => folderPath.startsWith(auth.grupo_documentos));
+      
+      if (!userAuth) {
+        console.log(`Usuario ${username} no tiene autorización para la carpeta: ${folderPath}`);
+        console.log(`Autorizaciones disponibles:`, activeAuths.map(a => a.grupo_documentos));
+        return res.status(403).json({
+          error: 'Sin autorización para esta carpeta',
+          message: `No tiene permisos para acceder a la carpeta: ${folderPath}`
+        });
+      }
+    } else {
+      // Si no se especifica carpeta, usar la primera autorización activa
+      userAuth = activeAuths[0];
+    }
+    
     // Añadir información de autorización al request
     req.userAuth = userAuth;
+    req.allUserAuths = activeAuths; // También pasar todas las autorizaciones
     
     console.log(`Autorización verificada para ${username}:`, {
       bucket: userAuth.bucket,
       grupo_documentos: userAuth.grupo_documentos,
-      selected: selectedBucketId ? 'specific' : 'default'
+      total_auths: activeAuths.length,
+      requested_folder: folderPath || 'default'
     });
     
     next();

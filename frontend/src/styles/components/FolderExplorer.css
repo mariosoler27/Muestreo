@@ -16,7 +16,7 @@
   color: var(--primary-blue);
   padding: var(--spacing-xs) var(--spacing-sm);
   border-radius: var(--border-radius-lg);
-  font-size: var(--font-size-xs);
+  font-size: 11px;
   font-weight: var(--font-weight-medium);
 }
 
@@ -56,7 +56,7 @@
 
 .folder-item.folder {
   color: var(--gray-500);
-  font-size: var(--font-size-base);
+  font-size: 13px;
 }
 
 .folder-icon {
@@ -68,7 +68,7 @@
 }
 
 .expand-icon {
-  font-size: var(--font-size-sm);
+  font-size: 12px;
   transition: transform var(--transition-normal);
   color: var(--gray-500);
 }
@@ -78,16 +78,17 @@
 }
 
 .folder-icon-symbol {
-  font-size: var(--font-size-base);
+  font-size: 14px;
 }
 
 .folder-name {
   flex: 1;
   user-select: none;
+  font-size: 13px;
 }
 
 .folder-count {
-  font-size: var(--font-size-xs);
+  font-size: 11px;
   color: var(--gray-500);
   margin-left: var(--spacing-xs);
 }
@@ -101,7 +102,7 @@
   padding: var(--spacing-md) var(--spacing-lg);
   background: #e7f3ff;
   border-top: 1px solid #b3d9ff;
-  font-size: var(--font-size-base);
+  font-size: 13px;
   flex-shrink: 0;
 }
 
@@ -109,13 +110,14 @@
   display: block;
   color: var(--gray-500);
   margin-top: var(--spacing-xs);
-  font-size: var(--font-size-sm);
+  font-size: 11px;
 }
 
 .folder-explorer .no-folders {
   text-align: center;
   padding: var(--spacing-4xl) var(--spacing-xl);
   color: var(--gray-500);
+  font-size: 13px;
 }
 
 .folder-explorer .loading {
@@ -125,4 +127,5 @@
   flex: 1;
   color: var(--gray-500);
   font-style: italic;
+  font-size: 13px;
 }

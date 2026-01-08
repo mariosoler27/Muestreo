@@ -51,7 +51,7 @@ const FileDetails = ({ fileDetails, selectedFile, loading, onProcessFile }) => {
 
   // Verificar existencia de documentos cuando cambian los detalles del archivo
   React.useEffect(() => {
-    if (fileDetails && fileDetails.data && fileDetails.data.length > 0) {
+    if (fileDetails && fileDetails.data && fileDetails.data.length > 0 && fileDetails.fileName) {
       const firstRecord = fileDetails.data[0];
       setFormData(prev => ({
         ...prev,
@@ -60,10 +60,14 @@ const FileDetails = ({ fileDetails, selectedFile, loading, onProcessFile }) => {
         idDocumento: firstRecord.idDocumento || ''
       }));
       
-      // Verificar existencia de todos los documentos
+      // Limpiar estado anterior de verificación de documentos
+      setDocumentExistence({});
+      setCheckingDocuments(false);
+      
+      // Verificar existencia de todos los documentos del archivo actual
       checkAllDocumentsExistence();
     }
-  }, [fileDetails]);
+  }, [fileDetails?.fileName, fileDetails?.data?.length]); // Solo ejecutar cuando cambie el archivo o número de registros
 
   // Función para verificar la existencia de todos los documentos
   const checkAllDocumentsExistence = async () => {
@@ -73,23 +77,23 @@ const FileDetails = ({ fileDetails, selectedFile, loading, onProcessFile }) => {
     const existenceMap = {};
     
     try {
-      // Verificar cada documento de forma paralela
-      const checkPromises = fileDetails.data
-        .filter(row => row.idDocumento) // Solo verificar filas con idDocumento
-        .map(async (row) => {
-          try {
-            const result = await checkDocumentExists(row.idDocumento);
-            existenceMap[row.idDocumento] = result.exists;
-          } catch (error) {
-            console.error(`Error verificando documento ${row.idDocumento}:`, error);
-            existenceMap[row.idDocumento] = false;
-          }
-        });
+      // Obtener IDs únicos para evitar duplicados
+      const allIds = fileDetails.data.map(row => row.idDocumento).filter(id => id);
+      const uniqueIds = [...new Set(allIds)];
+      
+      // Verificar solo IDs únicos
+      const checkPromises = uniqueIds.map(async (idDocumento) => {
+        try {
+          const result = await checkDocumentExists(idDocumento);
+          existenceMap[idDocumento] = result.exists;
+        } catch (error) {
+          console.error(`Error verificando documento ${idDocumento}:`, error);
+          existenceMap[idDocumento] = false;
+        }
+      });
       
       await Promise.all(checkPromises);
       setDocumentExistence(existenceMap);
-      
-      console.log('Verificación de documentos completada:', existenceMap);
     } catch (error) {
       console.error('Error en verificación masiva de documentos:', error);
     } finally {

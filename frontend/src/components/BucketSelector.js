@@ -21,15 +21,32 @@ const BucketSelector = ({ onBucketChange, onLoading }) => {
       const response = await getAvailableBuckets();
       
       if (response.success) {
-        setBuckets(response.buckets);
+        // Obtener buckets únicos (puede haber múltiples autorizaciones con el mismo bucket)
+        const uniqueBuckets = [];
+        const seenBuckets = new Set();
+        
+        response.buckets.forEach(auth => {
+          if (!seenBuckets.has(auth.bucket)) {
+            uniqueBuckets.push({
+              id: auth.id,
+              bucket: auth.bucket,
+              // Para mostrar solo el bucket, no los grupos
+              description: auth.bucket
+            });
+            seenBuckets.add(auth.bucket);
+          }
+        });
+        
+        setBuckets(uniqueBuckets);
         setCurrentBucket(response.currentBucket);
         
-        // Si hay múltiples buckets, informar al componente padre
+        // Informar al componente padre
         if (onBucketChange) {
           onBucketChange({
-            buckets: response.buckets,
+            buckets: uniqueBuckets,
             currentBucket: response.currentBucket,
-            hasMultipleBuckets: response.buckets.length > 1
+            hasMultipleBuckets: uniqueBuckets.length > 1,
+            allAuthorizations: response.buckets // Pasar todas las autorizaciones para FolderExplorer
           });
         }
       }
@@ -44,22 +61,19 @@ const BucketSelector = ({ onBucketChange, onLoading }) => {
 
   const handleBucketChange = (event) => {
     const selectedBucketId = parseInt(event.target.value);
-    const selectedBucket = buckets.find(bucket => bucket.id === selectedBucketId);
+    const selectedBucketInfo = buckets.find(bucket => bucket.id === selectedBucketId);
     
-    if (selectedBucket) {
-      // Actualizar el bucket seleccionado en el estado local
-      setCurrentBucket(selectedBucket);
-      
-      // Establecer el bucket seleccionado en la API para futuras peticiones
-      setSelectedBucket(selectedBucket);
+    if (selectedBucketInfo) {
+      setCurrentBucket(selectedBucketInfo);
+      setSelectedBucket(selectedBucketInfo);
       
       // Informar al componente padre del cambio
       if (onBucketChange) {
         onBucketChange({
           buckets,
-          currentBucket: selectedBucket,
+          currentBucket: selectedBucketInfo,
           hasMultipleBuckets: buckets.length > 1,
-          selectedBucket
+          selectedBucket: selectedBucketInfo
         });
       }
     }
@@ -97,8 +111,8 @@ const BucketSelector = ({ onBucketChange, onLoading }) => {
     return (
       <div className="bucket-selector single-bucket">
         <div className="bucket-info">
-          <span className="bucket-label">Bucket actual:</span>
-          <span className="bucket-name">{currentBucket?.grupoDocumentos || buckets[0].descripcion}</span>
+          <span className="bucket-label">Bucket:</span>
+          <span className="bucket-name">{buckets[0].bucket}</span>
         </div>
       </div>
     );
@@ -119,7 +133,7 @@ const BucketSelector = ({ onBucketChange, onLoading }) => {
         >
           {buckets.map(bucket => (
             <option key={bucket.id} value={bucket.id}>
-              {bucket.bucket}: {bucket.grupoDocumentos}
+              {bucket.bucket}
             </option>
           ))}
         </select>
@@ -127,7 +141,7 @@ const BucketSelector = ({ onBucketChange, onLoading }) => {
       <div className="current-bucket-info">
         <span className="info-label">Bucket activo:</span>
         <span className="info-value">
-          {currentBucket?.grupoDocumentos || 'Ninguno seleccionado'}
+          {currentBucket?.bucket || 'Ninguno seleccionado'}
         </span>
       </div>
     </div>

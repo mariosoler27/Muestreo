@@ -96,6 +96,7 @@ app.get('/api/getFolders', fullAuthMiddleware, async (req, res) => {
   }
 });
 
+
 // Obtener lista de archivos de una carpeta específica (requiere autenticación + autorización)
 app.get('/api/getFiles', fullAuthMiddleware, async (req, res) => {
   try {
@@ -429,7 +430,7 @@ app.get('/api/checkDocument/:documentId', fullAuthMiddleware, async (req, res) =
 
     // Usar el bucket autorizado del usuario
     const bucket = req.userAuth.bucket;
-    const documentPath = `Recepcion/${documentId}`;
+    const documentPath = `Recepcion/Muestreo/${documentId}`;
     
     console.log(`Verificando existencia del documento: ${documentId} para usuario: ${req.user.username}`);
     console.log(`Bucket: ${bucket}, Ruta: ${documentPath}`);
@@ -465,7 +466,7 @@ app.get('/api/downloadDocument/:documentId', fullAuthMiddleware, async (req, res
 
     // Usar el bucket autorizado del usuario
     const bucket = req.userAuth.bucket;
-    const documentPath = `Recepcion/${documentId}`;
+    const documentPath = `Recepcion/Muestreo/${documentId}`;
     
     console.log(`Descargando documento: ${documentId} para usuario: ${req.user.username}`);
     console.log(`Bucket: ${bucket}, Ruta: ${documentPath}`);
@@ -527,6 +528,117 @@ app.get('/api/admin/isAdmin', fullAuthMiddleware, async (req, res) => {
   }
 });
 
+// ===== GESTIÓN DE USUARIOS (Solo para administradores) =====
+
+// Obtener todos los usuarios (solo admins)
+app.get('/api/admin/users', fullAdminMiddleware, async (req, res) => {
+  try {
+    const UserModel = require('./models/user');
+    const userModel = new UserModel();
+    const users = await userModel.getAllUsers();
+    
+    res.json({
+      success: true,
+      users: users
+    });
+  } catch (error) {
+    console.error('Error obteniendo usuarios:', error);
+    res.status(500).json({
+      error: 'Error obteniendo usuarios',
+      details: error.message
+    });
+  }
+});
+
+// Crear nuevo usuario (solo admins)
+app.post('/api/admin/users', fullAdminMiddleware, async (req, res) => {
+  try {
+    const { username, admin } = req.body;
+    
+    if (!username) {
+      return res.status(400).json({
+        error: 'Datos incompletos',
+        message: 'Se requiere username'
+      });
+    }
+    
+    const UserModel = require('./models/user');
+    const userModel = new UserModel();
+    const newUser = await userModel.createUser(username, admin || false);
+    
+    console.log(`Admin ${req.user.username} creó nuevo usuario: ${username}`);
+    res.json({
+      success: true,
+      user: newUser
+    });
+  } catch (error) {
+    console.error('Error creando usuario:', error);
+    res.status(500).json({
+      error: 'Error creando usuario',
+      details: error.message
+    });
+  }
+});
+
+// Actualizar usuario por ID (solo admins)
+app.put('/api/admin/users/:id', fullAdminMiddleware, async (req, res) => {
+  try {
+    const id = parseInt(req.params.id);
+    const updates = req.body;
+    
+    if (!id) {
+      return res.status(400).json({
+        error: 'ID de usuario requerido'
+      });
+    }
+    
+    const UserModel = require('./models/user');
+    const userModel = new UserModel();
+    const updatedUser = await userModel.updateUserById(id, updates);
+    
+    console.log(`Admin ${req.user.username} actualizó usuario ID ${id}`);
+    res.json({
+      success: true,
+      user: updatedUser
+    });
+  } catch (error) {
+    console.error('Error actualizando usuario:', error);
+    res.status(500).json({
+      error: 'Error actualizando usuario',
+      details: error.message
+    });
+  }
+});
+
+// Eliminar usuario por ID (solo admins)
+app.delete('/api/admin/users/:id', fullAdminMiddleware, async (req, res) => {
+  try {
+    const id = parseInt(req.params.id);
+    
+    if (!id) {
+      return res.status(400).json({
+        error: 'ID de usuario requerido'
+      });
+    }
+    
+    const UserModel = require('./models/user');
+    const userModel = new UserModel();
+    await userModel.deleteUser(id);
+    
+    console.log(`Admin ${req.user.username} eliminó usuario ID ${id}`);
+    res.json({
+      success: true,
+      message: 'Usuario eliminado correctamente'
+    });
+  } catch (error) {
+    console.error('Error eliminando usuario:', error);
+    res.status(500).json({
+      error: 'Error eliminando usuario',
+      details: error.message
+    });
+  }
+});
+
 // Obtener todas las autorizaciones (solo admins)
 app.get('/api/admin/all-authorizations', fullAdminMiddleware, async (req, res) => {
   try {
@@ -544,7 +656,7 @@ app.get('/api/admin/all-authorizations', fullAdminMiddleware, async (req, res) =
 // Crear nueva autorización completa (solo admins)
 app.post('/api/admin/create-authorization', fullAdminMiddleware, async (req, res) => {
   try {
-    const { username, bucket, grupo_documentos, admin } = req.body;
+    const { username, bucket, grupo_documentos } = req.body;
     
     if (!username || !bucket || !grupo_documentos) {
       return res.status(400).json({
@@ -553,11 +665,11 @@ app.post('/api/admin/create-authorization', fullAdminMiddleware, async (req, res
       });
     }
     
-    const result = await authorizationService.createAuthorizationAdmin(
+    // Usar createUserAuthorization que NO toca los privilegios de admin
+    const result = await authorizationService.createUserAuthorization(
       username, 
       bucket, 
-      grupo_documentos,
-      admin || false
+      grupo_documentos
     );
     
     console.log(`Admin ${req.user.username} creó nueva autorización para ${username}`);

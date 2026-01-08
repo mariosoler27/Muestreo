@@ -62,11 +62,74 @@
   background: rgba(255, 255, 255, 0.3);
 }
 
+/* Estilos para las pestañas */
+.admin-tabs {
+  display: flex;
+  background: var(--bg-header);
+  border-bottom: 1px solid var(--border-color);
+}
+
+.tab-btn {
+  background: transparent;
+  border: none;
+  padding: var(--spacing-lg) var(--spacing-xl);
+  cursor: pointer;
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-medium);
+  color: var(--gray-600);
+  border-bottom: 3px solid transparent;
+  transition: all var(--transition-normal);
+  position: relative;
+}
+
+.tab-btn:hover {
+  color: var(--primary-blue);
+  background: rgba(0, 123, 255, 0.05);
+}
+
+.tab-btn.active {
+  color: var(--primary-blue);
+  border-bottom-color: var(--primary-blue);
+  background: var(--bg-card);
+}
+
+.admin-tab-content {
+  flex: 1;
+  overflow-y: auto;
+  max-height: calc(85vh - 200px);
+}
+
+/* Estilos para los componentes de gestión */
+.user-management,
+.authorization-management {
+  padding: var(--spacing-xl);
+}
+
+.section-header {
+  margin-bottom: var(--spacing-xl);
+  padding-bottom: var(--spacing-lg);
+  border-bottom: 1px solid var(--border-color);
+}
+
+.section-header h3 {
+  margin: 0 0 var(--spacing-sm) 0;
+  color: var(--gray-700);
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-semibold);
+}
+
+.section-header p {
+  margin: 0;
+  color: var(--gray-600);
+  font-size: var(--font-size-base);
+}
+
 .admin-actions {
   display: flex;
   gap: var(--spacing-md);
-  padding: var(--spacing-xl);
+  padding-bottom: var(--spacing-xl);
   border-bottom: 1px solid var(--border-color);
+  margin-bottom: var(--spacing-xl);
 }
 
 .create-btn {
@@ -111,14 +174,16 @@
   border-bottom: 1px solid var(--border-color);
 }
 
-.form-section h3 {
+.form-section h3,
+.form-section h4 {
   margin: 0 0 var(--spacing-lg) 0;
   color: var(--gray-700);
   font-size: var(--font-size-lg);
   font-weight: var(--font-weight-semibold);
 }
 
-.auth-form {
+.auth-form,
+.user-form {
   max-width: 800px;
 }
 
@@ -134,7 +199,8 @@
   flex-direction: column;
 }
 
-.auth-form .form-field label {
+.auth-form .form-field label,
+.user-form .form-field label {
   font-weight: var(--font-weight-medium);
   margin-bottom: var(--spacing-xs);
   color: var(--gray-700);
@@ -144,8 +210,19 @@
   gap: var(--spacing-sm);
 }
 
+.checkbox-label {
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: center !important;
+  gap: var(--spacing-sm) !important;
+  margin-bottom: 0 !important;
+  cursor: pointer;
+}
+
 .auth-form .form-field input[type="text"],
-.auth-form .form-field select {
+.auth-form .form-field select,
+.user-form .form-field input[type="text"],
+.user-form .form-field select {
   padding: var(--spacing-sm) var(--spacing-md);
   border: 1px solid var(--border-color);
   border-radius: var(--border-radius-sm);
@@ -154,13 +231,22 @@
 }
 
 .auth-form .form-field input[type="text"]:focus,
-.auth-form .form-field select:focus {
+.auth-form .form-field select:focus,
+.user-form .form-field input[type="text"]:focus,
+.user-form .form-field select:focus {
   outline: none;
   border-color: var(--primary-blue);
   box-shadow: var(--shadow-focus);
 }
 
-.auth-form .form-field input[type="checkbox"] {
+.readonly-input {
+  background: var(--gray-100) !important;
+  cursor: not-allowed !important;
+  color: var(--gray-600) !important;
+}
+
+.auth-form .form-field input[type="checkbox"],
+.user-form .form-field input[type="checkbox"] {
   margin: 0;
   transform: scale(1.2);
 }
@@ -202,11 +288,14 @@
   background: var(--gray-600);
 }
 
-.authorizations-table {
-  padding: var(--spacing-xl);
+.authorizations-table,
+.users-table {
+  margin-top: var(--spacing-xl);
 }
 
-.authorizations-table h3 {
+.authorizations-table h3,
+.authorizations-table h4,
+.users-table h4 {
   margin: 0 0 var(--spacing-lg) 0;
   color: var(--gray-700);
   font-size: var(--font-size-lg);
@@ -219,36 +308,65 @@
   border-radius: var(--border-radius-sm);
 }
 
-.authorizations-table table {
+.authorizations-table table,
+.users-table table {
   width: 100%;
   border-collapse: collapse;
   background: var(--bg-card);
 }
 
-.authorizations-table th {
-  background: var(--gray-100);
+.authorizations-table th,
+.authorizations-table td,
+.users-table th,
+.users-table td {
   padding: var(--spacing-md);
   text-align: left;
+  border-bottom: 1px solid var(--border-color);
+  font-size: var(--font-size-sm);
+}
+
+.authorizations-table th,
+.users-table th {
+  background: var(--gray-100);
   font-weight: var(--font-weight-semibold);
   color: var(--gray-700);
-  border-bottom: 1px solid var(--border-color);
-  font-size: var(--font-size-sm);
 }
 
-.authorizations-table td {
-  padding: var(--spacing-md);
-  border-bottom: 1px solid var(--border-color);
+.authorizations-table td,
+.users-table td {
   color: var(--gray-800);
-  font-size: var(--font-size-sm);
 }
 
-.authorizations-table tr:hover {
+.authorizations-table tr:hover,
+.users-table tr:hover {
   background: var(--bg-hover);
 }
 
-.authorizations-table tr.inactive {
+.authorizations-table tr.inactive,
+.users-table tr.inactive {
   opacity: 0.6;
   background: #fafafa;
+}
+
+/* Elementos específicos */
+.grupo-badge {
+  background: var(--primary-blue);
+  color: var(--white);
+  padding: var(--spacing-xs) var(--spacing-sm);
+  border-radius: var(--border-radius-sm);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+}
+
+.empty-state {
+  text-align: center;
+  padding: var(--spacing-4xl);
+  color: var(--gray-500);
+}
+
+.empty-state p {
+  margin: var(--spacing-sm) 0;
+  font-style: italic;
 }
 
 .action-buttons {
@@ -317,23 +435,43 @@
     gap: var(--spacing-sm);
   }
   
-  .auth-form .form-row {
-    grid-template-columns: 1fr;
-    gap: var(--spacing-md);
-  }
+.auth-form .form-row,
+.user-form .form-row {
+  grid-template-columns: 1fr;
+  gap: var(--spacing-md);
+}
+
+.admin-tabs {
+  flex-direction: column;
+}
+
+.tab-btn {
+  padding: var(--spacing-md);
+  text-align: left;
+}
   
   .form-actions {
     flex-direction: column;
   }
   
-  .table-container {
-    font-size: var(--font-size-xs);
-  }
-  
-  .authorizations-table th,
-  .authorizations-table td {
-    padding: var(--spacing-sm);
-  }
+.table-container {
+  font-size: var(--font-size-xs);
+}
+
+.authorizations-table th,
+.authorizations-table td,
+.users-table th,
+.users-table td {
+  padding: var(--spacing-sm);
+}
+
+.section-header {
+  padding-bottom: var(--spacing-md);
+}
+
+.section-header h3 {
+  font-size: var(--font-size-lg);
+}
   
   .action-buttons {
     flex-direction: column;
