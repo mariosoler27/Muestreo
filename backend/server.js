@@ -110,18 +110,39 @@ app.get('/api/getFiles', fullAuthMiddleware, async (req, res) => {
 
     // Verificar que el usuario tiene acceso a esta carpeta
     const basePath = req.userAuth.grupo_documentos;
+    console.log(`🔍 VERIFICACIÓN DE ACCESO:`, {
+      folderPath,
+      basePath,
+      userAuthId: req.userAuth.id,
+      bucket: req.userAuth.bucket,
+      startsWithBase: folderPath.startsWith(basePath)
+    });
+    
     if (!folderPath.startsWith(basePath)) {
+      console.log(`❌ ACCESO DENEGADO: ${folderPath} no empieza con ${basePath}`);
       return res.status(403).json({
-        error: 'Acceso denegado a esta carpeta'
+        error: 'Acceso denegado a esta carpeta',
+        details: `Carpeta solicitada: ${folderPath}, Base autorizada: ${basePath}`
       });
     }
 
     // Usar el bucket autorizado del usuario
     const bucket = req.userAuth.bucket;
+    const s3Path = folderPath + '/';
     
-    console.log(`Obteniendo archivos del bucket: ${bucket}, folder: ${folderPath} para usuario: ${req.user.username}`);
+    console.log(`📂 LISTANDO ARCHIVOS:`, {
+      bucket,
+      s3Path,
+      folderPath,
+      usuario: req.user.username
+    });
     
-    const files = await s3Services.listFiles(bucket, folderPath + '/');
+    const files = await s3Services.listFiles(bucket, s3Path);
+    
+    console.log(`📋 ARCHIVOS CRUDOS DE S3:`, {
+      count: files.length,
+      files: files.map(f => ({ name: f.name, key: f.key, size: f.size }))
+    });
     
     const filesWithTypes = files.map(file => {
       const fileType = getFileTypeFromName(file.name);
@@ -133,10 +154,10 @@ app.get('/api/getFiles', fullAuthMiddleware, async (req, res) => {
       };
     });
     
-    console.log(`Archivos encontrados en ${folderPath}: ${filesWithTypes.length}`);
+    console.log(`✅ ARCHIVOS FINALES: ${filesWithTypes.length} archivos encontrados en ${folderPath}`);
     res.json(filesWithTypes);
   } catch (error) {
-    console.error('Error obteniendo archivos:', error);
+    console.error('❌ ERROR OBTENIENDO ARCHIVOS:', error);
     res.status(500).json({ 
       error: 'Error al obtener los archivos', 
       details: error.message 
@@ -383,7 +404,7 @@ app.get('/api/user/authorization', fullAuthMiddleware, async (req, res) => {
   }
 });
 
-// Obtener todas las autorizaciones disponibles para un usuario
+// Obtener buckets únicos disponibles para un usuario (DISTINCT)
 app.get('/api/user/availableBuckets', fullAuthMiddleware, async (req, res) => {
   try {
     const allAuthorizations = await authorizationService.getAllUserAuthorizationConfigs(req.user.username);
@@ -394,24 +415,59 @@ app.get('/api/user/availableBuckets', fullAuthMiddleware, async (req, res) => {
       });
     }
 
-    // Crear una estructura más amigable para el frontend
-    const buckets = allAuthorizations.map(auth => ({
-      id: auth.id,
-      bucket: auth.bucket,
-      grupoDocumentos: auth.grupo_documentos,
-      descripcion: auth.grupo_documentos.split('/').pop(), // Último segmento como descripción amigable
-      fechaCreacion: auth.fecha_creacion
-    }));
+    // Obtener buckets únicos (DISTINCT)
+    const uniqueBuckets = [...new Set(allAuthorizations.map(auth => auth.bucket))];
+
+    console.log(`Usuario ${req.user.username} tiene acceso a ${uniqueBuckets.length} buckets únicos:`, uniqueBuckets);
 
     res.json({
       success: true,
-      buckets: buckets,
-      currentBucket: req.userAuth // La autorización actual del middleware
+      buckets: uniqueBuckets
     });
   } catch (error) {
     console.error('Error obteniendo buckets disponibles:', error);
     res.status(500).json({
       error: 'Error obteniendo buckets disponibles',
+      details: error.message
+    });
+  }
+});
+
+// Obtener grupos de documentos de un bucket específico
+app.get('/api/user/documentGroups/:bucket', fullAuthMiddleware, async (req, res) => {
+  try {
+    const bucket = req.params.bucket;
+    
+    if (!bucket) {
+      return res.status(400).json({
+        error: 'Parámetro bucket requerido'
+      });
+    }
+
+    const allAuthorizations = await authorizationService.getAllUserAuthorizationConfigs(req.user.username);
+    
+    // Filtrar autorizaciones por bucket específico y obtener solo los paths
+    const documentGroups = allAuthorizations
+      .filter(auth => auth.bucket === bucket && auth.activo)
+      .map(auth => auth.grupo_documentos);
+
+    if (documentGroups.length === 0) {
+      return res.status(404).json({
+        error: `No se encontraron grupos de documentos para el bucket: ${bucket}`
+      });
+    }
+
+    console.log(`Usuario ${req.user.username} tiene acceso a ${documentGroups.length} grupos en bucket ${bucket}:`, documentGroups);
+
+    res.json({
+      success: true,
+      bucket: bucket,
+      documentGroups: documentGroups
+    });
+  } catch (error) {
+    console.error(`Error obteniendo grupos de documentos para bucket ${req.params.bucket}:`, error);
+    res.status(500).json({
+      error: 'Error obteniendo grupos de documentos',
       details: error.message
     });
   }

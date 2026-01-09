@@ -17,13 +17,25 @@ const FileDetails = ({ fileDetails, selectedFile, loading, onProcessFile }) => {
 
   const [processingErrors, setProcessingErrors] = useState({});
 
-  // Opciones para el selector de resultado
-  const resultadoOptions = [
-    { value: '', label: 'Seleccionar resultado...' },
-    { value: 'OK', label: 'OK' },
-    { value: 'KO', label: 'KO' },
-    { value: 'KO parcial', label: 'KO parcial' }
-  ];
+  // Opciones dinámicas para el selector de resultado basadas en el bucket
+  const getResultadoOptions = () => {
+    const baseOptions = [
+      { value: '', label: 'Seleccionar resultado...' },
+      { value: 'OK', label: 'OK' },
+      { value: 'KO', label: 'KO' }
+    ];
+
+    // Solo agregar "KO parcial" si el bucket contiene "CRGP" en mayúsculas
+    if (fileDetails && fileDetails.userGroup) {
+      // Buscar "CRGP" en la ruta del grupo (que incluye el bucket)
+      const groupPath = fileDetails.userGroup.toUpperCase();
+      if (groupPath.includes('CRGP')) {
+        baseOptions.push({ value: 'KO parcial', label: 'KO parcial' });
+      }
+    }
+
+    return baseOptions;
+  };
 
   // Cargar datos del usuario desde sessionStorage al montar el componente
   React.useEffect(() => {
@@ -138,9 +150,13 @@ const FileDetails = ({ fileDetails, selectedFile, loading, onProcessFile }) => {
       return;
     }
     
+    // Mapear "KO parcial" a "Parcial" para el CSV
+    const resultadoParaCSV = formData.resultado === 'KO parcial' ? 'Parcial' : formData.resultado;
+    
     // Agregar información de la carpeta actual
     const processData = {
       ...formData,
+      resultado: resultadoParaCSV,
       fileName: fileDetails.fileName,
       folderPath: fileDetails.folderPath
     };
@@ -299,7 +315,7 @@ const FileDetails = ({ fileDetails, selectedFile, loading, onProcessFile }) => {
               onChange={(e) => handleInputChange('resultado', e.target.value)}
               className={processingErrors.resultado ? 'error' : ''}
             >
-              {resultadoOptions.map((option) => (
+              {getResultadoOptions().map((option) => (
                 <option key={option.value} value={option.value}>
                   {option.label}
                 </option>

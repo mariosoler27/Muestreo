@@ -45,24 +45,57 @@ const authorizationMiddleware = async (req, res, next) => {
       });
     }
 
-    // Verificar si se especifica una carpeta específica
     const folderPath = req.query.folder || req.body.folderPath;
+    const activeBucket = req.headers['x-active-bucket'];
     let userAuth = null;
 
-    if (folderPath) {
-      // Buscar la autorización que coincida con la carpeta solicitada
+    if (activeBucket && folderPath) {
+      // PRIORIDAD 1: Buscar autorización específica para bucket activo + carpeta
+      userAuth = activeAuths.find(auth => 
+        auth.bucket === activeBucket && folderPath.startsWith(auth.grupo_documentos)
+      );
+      
+      console.log(`🔍 MIDDLEWARE DEBUG:`, {
+        username,
+        activeBucket,
+        folderPath,
+        totalAuths: activeAuths.length,
+        foundAuth: userAuth ? `ID ${userAuth.id}: ${userAuth.bucket} -> ${userAuth.grupo_documentos}` : 'null'
+      });
+      
+      if (!userAuth) {
+        console.log(`❌ No se encontró autorización para bucket "${activeBucket}" + carpeta "${folderPath}"`);
+        console.log(`📋 Autorizaciones disponibles:`, activeAuths.map(a => `${a.id}: ${a.bucket} -> ${a.grupo_documentos}`));
+        return res.status(403).json({
+          error: 'Sin autorización para esta carpeta en el bucket activo',
+          message: `No tiene permisos para acceder a "${folderPath}" en bucket "${activeBucket}"`
+        });
+      }
+    } else if (activeBucket) {
+      // PRIORIDAD 2: Solo bucket activo, primera autorización de ese bucket
+      userAuth = activeAuths.find(auth => auth.bucket === activeBucket);
+      
+      if (!userAuth) {
+        console.log(`❌ Usuario ${username} no tiene autorizaciones para bucket activo: ${activeBucket}`);
+        return res.status(403).json({
+          error: 'Sin autorización para el bucket activo',
+          message: `No tiene permisos para el bucket: ${activeBucket}`
+        });
+      }
+    } else if (folderPath) {
+      // PRIORIDAD 3: Solo carpeta, buscar cualquier autorización que permita acceso
       userAuth = activeAuths.find(auth => folderPath.startsWith(auth.grupo_documentos));
       
       if (!userAuth) {
         console.log(`Usuario ${username} no tiene autorización para la carpeta: ${folderPath}`);
-        console.log(`Autorizaciones disponibles:`, activeAuths.map(a => a.grupo_documentos));
+        console.log(`Autorizaciones disponibles:`, activeAuths.map(a => `${a.id}: ${a.bucket} -> ${a.grupo_documentos}`));
         return res.status(403).json({
           error: 'Sin autorización para esta carpeta',
           message: `No tiene permisos para acceder a la carpeta: ${folderPath}`
         });
       }
     } else {
-      // Si no se especifica carpeta, usar la primera autorización activa
+      // PRIORIDAD 4: Sin especificaciones, usar la primera autorización activa
       userAuth = activeAuths[0];
     }
     
@@ -70,11 +103,13 @@ const authorizationMiddleware = async (req, res, next) => {
     req.userAuth = userAuth;
     req.allUserAuths = activeAuths; // También pasar todas las autorizaciones
     
-    console.log(`Autorización verificada para ${username}:`, {
+    console.log(`✅ Autorización verificada para ${username}:`, {
       bucket: userAuth.bucket,
       grupo_documentos: userAuth.grupo_documentos,
+      authorization_id: userAuth.id,
       total_auths: activeAuths.length,
-      requested_folder: folderPath || 'default'
+      requested_folder: folderPath || 'default',
+      active_bucket: activeBucket || 'none'
     });
     
     next();

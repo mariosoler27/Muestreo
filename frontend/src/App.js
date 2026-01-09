@@ -19,7 +19,7 @@ function App() {
   const [error, setError] = useState(null);
   const [authenticated, setAuthenticated] = useState(false);
   const [user, setUser] = useState(null);
-  const [bucketInfo, setBucketInfo] = useState(null);
+  const [activeBucket, setActiveBucket] = useState(null);
   const [bucketLoading, setBucketLoading] = useState(false);
   const [folderRefreshKey, setFolderRefreshKey] = useState(0);
   const [isAdmin, setIsAdmin] = useState(false);
@@ -160,36 +160,31 @@ function App() {
   };
 
   // Manejar cambio de bucket
-  const handleBucketChange = async (bucketData) => {
-    console.log('Cambio de bucket:', bucketData);
-    setBucketInfo(bucketData);
+  const handleBucketChange = (bucketData) => {
+    console.log('🔄 APP: Cambio de bucket:', bucketData);
     
-    // Si se selecciona un nuevo bucket, limpiar estados y recargar
-    if (bucketData.selectedBucket) {
-      try {
-        // Limpiar selecciones actuales
-        setSelectedFolder(null);
-        setSelectedFile(null);
-        setFileDetails(null);
-        setFiles([]);
-        
-        // Forzar recarga del FolderExplorer incrementando el refreshKey
-        setFolderRefreshKey(prev => prev + 1);
-        
-        // Mostrar mensaje informativo de éxito
-        setError(`Bucket cambiado a: ${bucketData.selectedBucket.bucket}: ${bucketData.selectedBucket.grupoDocumentos}. Las carpetas se actualizarán automáticamente.`);
-        
-        // Limpiar el mensaje después de unos segundos
-        setTimeout(() => {
-          setError(null);
-        }, 3000);
-        
-        console.log('Bucket cambiado exitosamente. El FolderExplorer se actualizará con el nuevo bucket.');
-        
-      } catch (error) {
-        console.error('Error al cambiar bucket:', error);
-        setError('Error al cambiar de bucket. Por favor, inténtalo de nuevo.');
-      }
+    const newActiveBucket = bucketData.activeBucket;
+    
+    if (newActiveBucket && newActiveBucket !== activeBucket) {
+      console.log(`🔄 APP: Cambiando bucket activo de "${activeBucket}" a "${newActiveBucket}"`);
+      
+      // Limpiar selecciones actuales
+      setSelectedFolder(null);
+      setSelectedFile(null);
+      setFileDetails(null);
+      setFiles([]);
+      
+      // Actualizar bucket activo
+      setActiveBucket(newActiveBucket);
+      
+      // Forzar recarga del FolderExplorer incrementando el refreshKey
+      setFolderRefreshKey(prev => prev + 1);
+      
+      console.log(`✅ APP: Bucket activo actualizado a: ${newActiveBucket}`);
+    } else if (newActiveBucket && !activeBucket) {
+      // Primer bucket cargado
+      console.log(`🔧 APP: Primer bucket cargado: ${newActiveBucket}`);
+      setActiveBucket(newActiveBucket);
     }
   };
 
@@ -248,7 +243,7 @@ function App() {
               selectedFolder={selectedFolder}
               loading={loading}
               refreshKey={folderRefreshKey}
-              bucketInfo={bucketInfo}
+              activeBucket={activeBucket}
             />
           </div>
 

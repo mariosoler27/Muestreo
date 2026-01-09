@@ -21,17 +21,14 @@ const handleResponse = async (response) => {
   return response.json();
 };
 
-// Variable global para el bucket seleccionado
-let selectedBucketInfo = null;
-
-// Función para establecer el bucket seleccionado
-export const setSelectedBucket = (bucketInfo) => {
-  selectedBucketInfo = bucketInfo;
-};
-
-// Función para obtener el bucket seleccionado
-export const getSelectedBucket = () => {
-  return selectedBucketInfo;
+// Función para obtener el bucket activo de localStorage
+const getActiveBucket = () => {
+  try {
+    return localStorage.getItem('activeBucket');
+  } catch (error) {
+    console.error('Error leyendo bucket activo:', error);
+    return null;
+  }
 };
 
 // Función helper para hacer peticiones autenticadas
@@ -44,12 +41,9 @@ const authenticatedFetch = async (url, options = {}) => {
   // Añadir headers de autenticación
   const authHeaders = getAuthHeaders();
   
-  // Añadir headers del bucket seleccionado si existe
-  const bucketHeaders = {};
-  if (selectedBucketInfo) {
-    bucketHeaders['X-Selected-Bucket-Id'] = selectedBucketInfo.id.toString();
-    bucketHeaders['X-Selected-Group-Documents'] = selectedBucketInfo.grupoDocumentos;
-  }
+  // Añadir bucket activo como header si existe
+  const activeBucket = getActiveBucket();
+  const bucketHeaders = activeBucket ? { 'X-Active-Bucket': activeBucket } : {};
   
   const requestOptions = {
     ...options,
@@ -144,6 +138,21 @@ export const getAvailableBuckets = async () => {
     return await handleResponse(response);
   } catch (error) {
     console.error('Error en getAvailableBuckets:', error);
+    throw error;
+  }
+};
+
+// Obtener grupos de documentos de un bucket específico (requiere autenticación)
+export const getDocumentGroups = async (bucket) => {
+  try {
+    if (!bucket) {
+      throw new Error('Parámetro bucket requerido');
+    }
+    
+    const response = await authenticatedFetch(`${API_BASE_URL}/user/documentGroups/${encodeURIComponent(bucket)}`);
+    return await handleResponse(response);
+  } catch (error) {
+    console.error(`Error en getDocumentGroups para bucket ${bucket}:`, error);
     throw error;
   }
 };

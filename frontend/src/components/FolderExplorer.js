@@ -1,71 +1,49 @@
 import React, { useState, useEffect } from 'react';
-import { getAvailableBuckets, getFilesByFolder } from '../services/api';
+import { getDocumentGroups, getFilesByFolder } from '../services/api';
 
-const FolderExplorer = ({ onFolderSelect, selectedFolder, loading: parentLoading, refreshKey, bucketInfo }) => {
+const FolderExplorer = ({ onFolderSelect, selectedFolder, loading: parentLoading, refreshKey, activeBucket }) => {
   const [expandedFolders, setExpandedFolders] = useState(new Set());
   const [folderStructure, setFolderStructure] = useState([]);
-  const [userAuthorizations, setUserAuthorizations] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // Cargar autorizaciones del usuario al montar el componente
+  // Cargar estructura cuando cambie el bucket activo
   useEffect(() => {
-    loadUserAuthorizations();
-  }, []);
-
-  // Recargar cuando cambie el refreshKey o bucketInfo
-  useEffect(() => {
-    if (refreshKey || bucketInfo) {
-      loadUserAuthorizations();
+    if (activeBucket) {
+      loadFolderStructure(activeBucket);
     }
-  }, [refreshKey, bucketInfo]);
+  }, [activeBucket, refreshKey]);
 
-  const loadUserAuthorizations = async () => {
+  const loadFolderStructure = async (bucket) => {
     try {
       setLoading(true);
-      const response = await getAvailableBuckets();
+      console.log(`📂 CARGANDO ESTRUCTURA para bucket: ${bucket}`);
       
-      if (response.success && response.buckets) {
-        setUserAuthorizations(response.buckets);
-        await buildFolderStructure(response.buckets);
+      const response = await getDocumentGroups(bucket);
+      
+      if (response.success && response.documentGroups) {
+        console.log(`📋 GRUPOS OBTENIDOS:`, response.documentGroups);
+        await buildFolderStructure(response.documentGroups);
       }
     } catch (error) {
-      console.error('Error cargando autorizaciones:', error);
+      console.error('Error cargando estructura de carpetas:', error);
+      setFolderStructure([]);
     } finally {
       setLoading(false);
     }
   };
 
-  const buildFolderStructure = async (authorizations) => {
+  const buildFolderStructure = async (documentGroups) => {
     try {
-      // Filtrar autorizaciones por bucket si hay uno específicamente seleccionado
-      let filteredAuthorizations = authorizations;
-      
-      if (bucketInfo && bucketInfo.selectedBucket && bucketInfo.selectedBucket.bucket) {
-        const selectedBucketName = bucketInfo.selectedBucket.bucket;
-        filteredAuthorizations = authorizations.filter(auth => auth.bucket === selectedBucketName);
-        console.log(`Filtrando por bucket: ${selectedBucketName}. Autorizaciones encontradas: ${filteredAuthorizations.length}`);
-      }
-      
-      // Agrupar autorizaciones filtradas por subcarpeta
-      const groupedAuth = {};
-      
-      filteredAuthorizations.forEach(auth => {
-        const subcarpeta = auth.grupoDocumentos.replace('Recepcion/Muestreo/', '');
-        
-        if (!groupedAuth[subcarpeta]) {
-          groupedAuth[subcarpeta] = {
-            name: subcarpeta,
-            path: auth.grupoDocumentos
-          };
-        }
-      });
-
-      // Para cada subcarpeta permitida, cargar su contenido (archivos y carpetas)
+      // Procesar cada grupo de documentos
       const subcarpetas = [];
-      for (const [subcarpetaName, subcarpetaInfo] of Object.entries(groupedAuth)) {
+      
+      for (const groupPath of documentGroups) {
         try {
-          // Usar getFilesByFolder que ya maneja la autenticación correctamente
-          const files = await getFilesByFolder(subcarpetaInfo.path);
+          // Extraer nombre de la subcarpeta (ej: "Recepcion/Muestreo/Facturas" -> "Facturas")
+          const subcarpetaName = groupPath.split('/').pop();
+          
+          // Cargar archivos y subcarpetas de este grupo
+          const files = await getFilesByFolder(groupPath);
           
           const folders = [];
           let fileCount = 0;
@@ -74,9 +52,9 @@ const FolderExplorer = ({ onFolderSelect, selectedFolder, loading: parentLoading
             const folderSet = new Set();
             
             files.forEach(file => {
-              if (file.folder && file.folder !== subcarpetaInfo.path) {
+              if (file.folder && file.folder !== groupPath) {
                 // Es un archivo dentro de una subcarpeta - extraer nombre de la carpeta
-                const relativePath = file.folder.replace(subcarpetaInfo.path + '/', '');
+                const relativePath = file.folder.replace(groupPath + '/', '');
                 const folderName = relativePath.split('/')[0];
                 
                 if (!folderSet.has(folderName)) {
@@ -84,12 +62,12 @@ const FolderExplorer = ({ onFolderSelect, selectedFolder, loading: parentLoading
                   folders.push({
                     id: `${subcarpetaName.toLowerCase()}-${folderName.toLowerCase()}`,
                     name: folderName,
-                    path: `${subcarpetaInfo.path}/${folderName}`,
+                    path: `${groupPath}/${folderName}`,
                     type: 'folder',
                     parent: subcarpetaName.toLowerCase()
                   });
                 }
-              } else if (file.folder === subcarpetaInfo.path) {
+              } else if (file.folder === groupPath) {
                 // Es un archivo en el directorio raíz de la subcarpeta - contar
                 fileCount++;
               }
@@ -99,22 +77,24 @@ const FolderExplorer = ({ onFolderSelect, selectedFolder, loading: parentLoading
           subcarpetas.push({
             id: subcarpetaName.toLowerCase(),
             name: subcarpetaName,
-            path: subcarpetaInfo.path,
+            path: groupPath,
             type: 'group',
             parent: 'recepcion-muestreo',
             children: folders,
             fileCount: fileCount
           });
         } catch (error) {
-          console.error(`Error cargando contenido para ${subcarpetaName}:`, error);
+          console.error(`Error cargando contenido para ${groupPath}:`, error);
           // Añadir subcarpeta vacía si hay error
+          const subcarpetaName = groupPath.split('/').pop();
           subcarpetas.push({
             id: subcarpetaName.toLowerCase(),
             name: subcarpetaName,
-            path: subcarpetaInfo.path,
+            path: groupPath,
             type: 'group',
             parent: 'recepcion-muestreo',
-            children: []
+            children: [],
+            fileCount: 0
           });
         }
       }
@@ -132,6 +112,8 @@ const FolderExplorer = ({ onFolderSelect, selectedFolder, loading: parentLoading
       
       // Expandir automáticamente Recepcion/Muestreo
       setExpandedFolders(new Set(['recepcion-muestreo']));
+      
+      console.log(`✅ ESTRUCTURA CONSTRUIDA: ${subcarpetas.length} subcarpetas`);
       
     } catch (error) {
       console.error('Error construyendo estructura de carpetas:', error);

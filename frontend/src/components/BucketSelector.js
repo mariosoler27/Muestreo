@@ -1,6 +1,29 @@
 import React, { useState, useEffect } from 'react';
-import { getAvailableBuckets, setSelectedBucket } from '../services/api';
+import { getAvailableBuckets } from '../services/api';
 // Los estilos se importan desde el index.css principal
+
+// Funciones para manejar bucket activo en localStorage
+const getActiveBucket = () => {
+  try {
+    return localStorage.getItem('activeBucket');
+  } catch (error) {
+    console.error('Error leyendo bucket activo de localStorage:', error);
+    return null;
+  }
+};
+
+const setActiveBucket = (bucket) => {
+  try {
+    if (bucket) {
+      localStorage.setItem('activeBucket', bucket);
+      console.log(`💾 BUCKET ACTIVO guardado en localStorage: ${bucket}`);
+    } else {
+      localStorage.removeItem('activeBucket');
+    }
+  } catch (error) {
+    console.error('Error guardando bucket activo en localStorage:', error);
+  }
+};
 
 const BucketSelector = ({ onBucketChange, onLoading }) => {
   const [buckets, setBuckets] = useState([]);
@@ -20,33 +43,31 @@ const BucketSelector = ({ onBucketChange, onLoading }) => {
 
       const response = await getAvailableBuckets();
       
-      if (response.success) {
-        // Obtener buckets únicos (puede haber múltiples autorizaciones con el mismo bucket)
-        const uniqueBuckets = [];
-        const seenBuckets = new Set();
+      if (response.success && response.buckets) {
+        setBuckets(response.buckets);
         
-        response.buckets.forEach(auth => {
-          if (!seenBuckets.has(auth.bucket)) {
-            uniqueBuckets.push({
-              id: auth.id,
-              bucket: auth.bucket,
-              // Para mostrar solo el bucket, no los grupos
-              description: auth.bucket
-            });
-            seenBuckets.add(auth.bucket);
-          }
+        // Determinar bucket inicial: localStorage o primer bucket
+        const savedBucket = getActiveBucket();
+        const initialBucket = (savedBucket && response.buckets.includes(savedBucket)) 
+          ? savedBucket 
+          : response.buckets[0];
+        
+        setCurrentBucket(initialBucket);
+        setActiveBucket(initialBucket);
+        
+        console.log(`🔧 BUCKETS CARGADOS:`, {
+          total: response.buckets.length,
+          buckets: response.buckets,
+          savedBucket,
+          initialBucket
         });
-        
-        setBuckets(uniqueBuckets);
-        setCurrentBucket(response.currentBucket);
         
         // Informar al componente padre
         if (onBucketChange) {
           onBucketChange({
-            buckets: uniqueBuckets,
-            currentBucket: response.currentBucket,
-            hasMultipleBuckets: uniqueBuckets.length > 1,
-            allAuthorizations: response.buckets // Pasar todas las autorizaciones para FolderExplorer
+            activeBucket: initialBucket,
+            allBuckets: response.buckets,
+            hasMultipleBuckets: response.buckets.length > 1
           });
         }
       }
@@ -60,23 +81,26 @@ const BucketSelector = ({ onBucketChange, onLoading }) => {
   };
 
   const handleBucketChange = (event) => {
-    const selectedBucketId = parseInt(event.target.value);
-    const selectedBucketInfo = buckets.find(bucket => bucket.id === selectedBucketId);
+    const selectedBucket = event.target.value;
     
-    if (selectedBucketInfo) {
-      setCurrentBucket(selectedBucketInfo);
-      setSelectedBucket(selectedBucketInfo);
-      
-      // Informar al componente padre del cambio
-      if (onBucketChange) {
-        onBucketChange({
-          buckets,
-          currentBucket: selectedBucketInfo,
-          hasMultipleBuckets: buckets.length > 1,
-          selectedBucket: selectedBucketInfo
-        });
-      }
+    console.log(`🔄 CAMBIO DE BUCKET:`, {
+      anterior: currentBucket,
+      nuevo: selectedBucket
+    });
+    
+    setCurrentBucket(selectedBucket);
+    setActiveBucket(selectedBucket);
+    
+    // Informar al componente padre del cambio
+    if (onBucketChange) {
+      onBucketChange({
+        activeBucket: selectedBucket,
+        allBuckets: buckets,
+        hasMultipleBuckets: buckets.length > 1
+      });
     }
+    
+    console.log(`✅ BUCKET ACTIVO CAMBIADO a: ${selectedBucket}`);
   };
 
   if (loading) {
@@ -112,7 +136,7 @@ const BucketSelector = ({ onBucketChange, onLoading }) => {
       <div className="bucket-selector single-bucket">
         <div className="bucket-info">
           <span className="bucket-label">Bucket:</span>
-          <span className="bucket-name">{buckets[0].bucket}</span>
+          <span className="bucket-name">{buckets[0]}</span>
         </div>
       </div>
     );
@@ -127,13 +151,13 @@ const BucketSelector = ({ onBucketChange, onLoading }) => {
         </label>
         <select
           id="bucket-select"
-          value={currentBucket?.id || ''}
+          value={currentBucket || ''}
           onChange={handleBucketChange}
           className="bucket-dropdown"
         >
           {buckets.map(bucket => (
-            <option key={bucket.id} value={bucket.id}>
-              {bucket.bucket}
+            <option key={bucket} value={bucket}>
+              {bucket}
             </option>
           ))}
         </select>
@@ -141,7 +165,7 @@ const BucketSelector = ({ onBucketChange, onLoading }) => {
       <div className="current-bucket-info">
         <span className="info-label">Bucket activo:</span>
         <span className="info-value">
-          {currentBucket?.bucket || 'Ninguno seleccionado'}
+          {currentBucket || 'Ninguno seleccionado'}
         </span>
       </div>
     </div>
